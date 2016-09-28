@@ -74,9 +74,8 @@ def say(text):
     """synthesizes the given text to speech"""
     engine = pyttsx.init()
     engine.setProperty('rate', 150)
-    # remove "pass" and uncomment next line in order to enable this function
-    pass    
-    #engine.say(text)
+    # remove "pass" and uncomment next line in order to enable this function    
+    engine.say(text)
     engine.runAndWait()
 
 
