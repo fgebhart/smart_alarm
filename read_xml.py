@@ -1,8 +1,10 @@
 from xml.dom import minidom
 from xml.dom.minidom import Node
 
+from collections import namedtuple
 
-def read_xml_file(xml_file):
+
+def read_xml_file_list(xml_file):
     """reads the xml file, parse it and save the fetched data to the list
     called 'xml_data'."""
     xmldoc = minidom.parse(xml_file)
@@ -15,7 +17,20 @@ def read_xml_file(xml_file):
 
     return xml_data
 
+def read_xml_file_namedtuple(xml_file):
+    settings = namedtuple("settings", "lastmodified alarmtime content days")
 
-fetched_data = read_xml_file('xml_dummy.xml')
+    xmldoc = minidom.parse(xml_file)
 
-print fetched_data
+    settings.lastmodified = xmldoc.getElementsByTagName('lastmodified')[0].childNodes[0].data
+    settings.alarmtime = xmldoc.getElementsByTagName('alarmtime')[0].childNodes[0].data
+    settings.content = xmldoc.getElementsByTagName('content')[0].childNodes[0].data
+    settings.days = xmldoc.getElementsByTagName('days')[0].childNodes[0].data
+
+    return settings
+
+
+
+if __name__ == '__main__':
+    settings = read_xml_file_namedtuple('data.xml')
+    print settings.lastmodified +' '+ settings.alarmtime +' '+ settings.content +' '+ settings.days
