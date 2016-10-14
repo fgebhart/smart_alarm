@@ -1,7 +1,7 @@
-### smart alarm
+# smart alarm
 open source alarm clock
 
-# Features:
+### Features:
 
 * set alarm using your smart phone via local host server
 * play music of choice
@@ -10,7 +10,7 @@ open source alarm clock
 * displays text on the 14-segment display
 * 3d-printed case
 
-# Picture of the current vesion:
+### Picture of the current vesion:
 
-![alt tag](https://raw.fgebhartcontent.com/fgebhart/smart_alarm/rpi_alarm.jpg)
+![alt tag](https://raw.githubusercontent.com/fgebhart/smart_alarm/master/rpi_alarm.jpg)
 
