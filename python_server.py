@@ -1,16 +1,15 @@
-
 import cgi
 
-from save_xml_file import create_xml
-from read_xml import read_xml_file_namedtuple
+import xml_write
+import xml_read
 
 from datetime import datetime
 
 import os.path
+import settings
 
 
-
-def create_page(settings, currentTime):
+def create_page(setts, currentTime):
     # html template
     html = '''
     <html>
@@ -30,16 +29,20 @@ def create_page(settings, currentTime):
             </form>
         </bod>
     </html>
-    '''% {
+    ''' % {
         'currenTime': str(currentTime),
-        'alarmTime': str(settings.alarmtime),
-        'musicOrNewsImage': './left.png' if settings.content == 'music' else './right.png',
-        'musicOrNewsValue': 'news' if settings.content == 'music' else 'music'
+        'alarmTime': str(setts.alarm_time),
+        'musicOrNewsImage': './left.png' if setts.content == 'music' else './right.png',
+        'musicOrNewsValue': 'news' if setts.content == 'music' else 'music'
         }
 
     return html
 
+
 def app(environ, start_response):
+    # define settings
+    #settings = namedtuple("settings", "alarm_active alarm_time content days individual_message text volume")
+    setts = settings.Settings()
 
     # get current time
     currentTime = datetime.now().strftime('%H:%M:%S')
@@ -52,9 +55,8 @@ def app(environ, start_response):
             keep_blank_values=True
         )
 
-        content = post.getvalue('musicOrNews')
-
-        create_xml(currentTime, "13:00", content, "monday tuesday").writexml(open('data.xml', 'w'))
+        setts.content = post.getvalue('musicOrNews')
+        xml_write.create(currentTime, setts).writexml(open('data.xml', 'w'))
 
     path = str(environ['PATH_INFO'])
 
@@ -67,13 +69,19 @@ def app(environ, start_response):
 
         # check if there is already a xml file, if not create one
         if not os.path.isfile('data.xml'):
-            create_xml(currentTime, "13:00", "news", "monday tuesday").writexml(open('data.xml', 'w'))
+            setts.fill_with_default_values()
+            xml_write.create(currentTime, setts).writexml(open('data.xml', 'w'))
 
         # load settings from xml file
-        settings = read_xml_file_namedtuple('data.xml')
+        try:
+            xml_read.read_default('data.xml', setts)
+        except:
+            # file is not consistent
+            setts.fill_with_default_values()
+            xml_write.create(currentTime, setts).writexml(open('data.xml', 'w'))
 
         # create html page
-        html = create_page(settings, currentTime)
+        html = create_page(setts, currentTime)
         headers = [('Server', 'Apache'), ('Content-type', 'text/html')]
 
     start_response('200 OK', headers)
@@ -90,7 +98,7 @@ if __name__ == '__main__':
         while True:
             print('Server request.')
             httpd.handle_request()
-    except KeyboardInterrupt: # Strg + C
+    except KeyboardInterrupt:  # Strg + C
         httpd.server_close()
         print('Server Closed.')
     except:
