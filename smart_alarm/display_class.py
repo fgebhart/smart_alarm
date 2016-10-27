@@ -4,14 +4,13 @@ import time
 
 class Display(object):
     """
-    asdfasdfasdf
+    Display class: manages all methods concerning the alphanumeric display.
     """
 
     def __init__(self):
-        # init fuction
+        """init function: imports adafruit alphanumerc display class and begins"""
         self.display_lib = AlphaNum4.AlphaNum4()
         self.display_lib.begin()
-
 
 
     def scroll(self, message, number_of_iteration):
@@ -40,31 +39,31 @@ class Display(object):
 
 
     def show_time(self, time):
-        """displays the given time"""
-        # display actual time using adafruit library
+        """displays the given time using adafruit library"""
         self.display_lib.print_number_str(time)
+
 
     def set_brightness(self, value):
         """change the displays brightness. Value is between 0 and 15"""
-        # self.display_chip.begin()
-
-        # adjust the brightness by the given value
         self.display_lib.set_brightness(value)
-        print 'brightness: ', value
+
 
     def clear_class(self):
+        """clears the display, in order to accept new content
+        (note that it needs to be called different to -pythonic- 'clear')"""
         self.display_lib.clear()
-        print 'display cleared'
 
 
     def write(self):
+        """writes all the earlier given content to the display,
+        needs to be done at every end of the loop"""
         self.display_lib.write_display()
 
-        print 'display written'
 
     def set_decimal(self, pos, decimal):
+        """activates the decimal point. First argument is the poosition
+        from 0 to 3, second is True or False."""
         self.display_lib.set_decimal(pos, decimal)
-        print 'display decimal set!'
 
 
 
