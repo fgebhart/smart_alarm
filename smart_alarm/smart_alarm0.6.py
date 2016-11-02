@@ -130,11 +130,11 @@ def delete_old_files(time_to_alarm, alarm_active):
             os.remove(list_of_mp3_files[file])
 
 
-# read out the settings in 'xml_dummy_xml' from the same folder
-xml_data = read_xml_file_list('xml_dummy.xml')
+# read out the settings in 'data.xml' from the same folder
+xml_data = read_xml_file_list('data.xml')
 
 # assign the xml data to the corresponding variables
-alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume = update_settings('xml_dummy.xml')
+alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume = update_settings('data.xml')
 
 # set flag for just played the news
 just_played_alarm = False
@@ -157,13 +157,13 @@ try:
         display.clear_class()
 
         # read xml file and store data to xml_data
-        new_xml_data = read_xml_file_list('xml_dummy.xml')
+        new_xml_data = read_xml_file_list('data.xml')
 
         # check if xml file was updated. If so, update the variables
         if xml_data != new_xml_data:
             print 'file changed - update settings'
             # set the updated variables
-            alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume = update_settings('xml_dummy.xml')
+            alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume = update_settings('data.xml')
 
             adjust_volume(volume)
 

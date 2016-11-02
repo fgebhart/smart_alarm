@@ -8,7 +8,7 @@ def read_xml_file_namedtuple(xml_file):
     xmldoc = minidom.parse(xml_file)
 
     settings.alarm_active = xmldoc.getElementsByTagName('alarm_active')[0].childNodes[0].data
-    settings.time = xmldoc.getElementsByTagName('time')[0].childNodes[0].data
+    settings.time = xmldoc.getElementsByTagName('alarm_time')[0].childNodes[0].data
     settings.content = xmldoc.getElementsByTagName('content')[0].childNodes[0].data
     settings.days = xmldoc.getElementsByTagName('days')[0].childNodes[0].data
     settings.individual_message = xmldoc.getElementsByTagName('individual_message')[0].childNodes[0].data
