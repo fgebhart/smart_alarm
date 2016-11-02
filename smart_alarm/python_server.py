@@ -1,92 +1,71 @@
 import cgi
-
-import xml_write
-import xml_read
-
-from datetime import datetime
-
+import xml_belongings as xml
 import os.path
-import settings
 
-
-def create_page(setts, currentTime):
-    # html template
-    html = '''
-    <html>
-        <head>
-            <title>Fabians und Sebastian toller Wecker</title>
-        </head>
-        <body>
-            <h1>Wecker</h1>
-
-            Current Time: %(currenTime)s <br>
-
-            Alarm Time: %(alarmTime)s <br>
-
-            <form method='post' action="">
-                <input type="hidden" name="musicOrNews" value="%(musicOrNewsValue)s">
-                Music <input type="image" src="%(musicOrNewsImage)s" name="change_content" value="testlal"> News <br>
-            </form>
-        </bod>
-    </html>
-    ''' % {
-        'currenTime': str(currentTime),
-        'alarmTime': str(setts.alarm_time),
-        'musicOrNewsImage': './left.png' if setts.content == 'music' else './right.png',
-        'musicOrNewsValue': 'news' if setts.content == 'music' else 'music'
-        }
-
-    return html
+MIME_TABLE = {'.txt': 'text/plain',
+              '.html': 'text/html',
+              '.css': 'text/css',
+              '.xml': 'text/xml',
+              '.js': 'application/javascript',
+              '.png': 'image/png'
+             }
 
 
 def app(environ, start_response):
-    # define settings
-    #settings = namedtuple("settings", "alarm_active alarm_time content days individual_message text volume")
-    setts = settings.Settings()
-
-    # get current time
-    currentTime = datetime.now().strftime('%H:%M:%S')
-
     # response for POST
     if environ['REQUEST_METHOD'] == 'POST':
         post = cgi.FieldStorage(
            fp=environ['wsgi.input'],
            environ=environ,
-            keep_blank_values=True
+           keep_blank_values=False
         )
 
-        setts.content = post.getvalue('musicOrNews')
-        xml_write.create(currentTime, setts).writexml(open('data.xml', 'w'))
+        # alarm_time_hour = post.getvalue('hour')
+        # alarm_active = post.getvalue('alarm_active')
+        # xml.changeValue('data.xml', 'alarm_active', alarm_active)
+        for s in post:
+            xml.changeValue('data.xml', s, post.getvalue(s))
+            print s + ' changed to ' +  post.getvalue(s)
 
-    path = str(environ['PATH_INFO'])
-
-    if '.png' in path:
-        # response for an image
-        html = open("Images" + path, "rb").read()
-        headers = [('Server', 'Apache'), ('Content-type', 'image/png')]
+    path = environ['PATH_INFO']
+    if path != '/data.xml':
+        path = './web' + path
     else:
-        # response for a normal html page
+        path = '.' + path
 
-        # check if there is already a xml file, if not create one
-        if not os.path.isfile('data.xml'):
-            setts.fill_with_default_values()
-            xml_write.create(currentTime, setts).writexml(open('data.xml', 'w'))
+    if os.path.exists(path):
+        if path == './web/':
+            path = './web/index.html'
 
-        # load settings from xml file
-        try:
-            xml_read.read_default('data.xml', setts)
-        except:
-            # file is not consistent
-            setts.fill_with_default_values()
-            xml_write.create(currentTime, setts).writexml(open('data.xml', 'w'))
+        h = open(path, 'rb')
+        content = h.read()
+        h.close()
 
-        # create html page
-        html = create_page(setts, currentTime)
-        headers = [('Server', 'Apache'), ('Content-type', 'text/html')]
+        headers = [('content-type', content_type(path))]
+        start_response('200 OK', headers)
+        return [content]
+    else:
+        return show_404_app(environ, start_response)
 
-    start_response('200 OK', headers)
 
-    return [html]
+def content_type(path):
+    """Return a guess at the mime type for this path
+    based on the file extension"""
+
+    name, ext = os.path.splitext(path)
+
+    if ext in MIME_TABLE:
+        return MIME_TABLE[ext]
+    else:
+        return "application/octet-stream"
+
+
+def show_404_app(environ, start_response):
+    start_response('404 Not Found', [('content-type','text/html')])
+    return ["""<html><h1>Page not Found</h1><p>
+               That page is unknown. Return to
+               the <a href="/">alarm clock</a>.</p>
+               </html>""", ]
 
 
 if __name__ == '__main__':

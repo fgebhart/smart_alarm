@@ -2,7 +2,6 @@ from xml.dom import minidom
 from collections import namedtuple
 
 
-
 def read_xml_file_namedtuple(xml_file):
     settings = namedtuple("settings", "alarm_active time content days individual_message text volume")
 
@@ -48,3 +47,53 @@ def update_settings(xml_file):
     return alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume
 
 
+def read(xml_file, settings):
+    xmldoc = minidom.parse(xml_file)
+
+    settings.alarm_active = xmldoc.getElementsByTagName('alarm_active')[0].childNodes[0].data
+    settings.alarm_time = xmldoc.getElementsByTagName('alarm_time')[0].childNodes[0].data
+    settings.content = xmldoc.getElementsByTagName('content')[0].childNodes[0].data
+    settings.days = xmldoc.getElementsByTagName('days')[0].childNodes[0].data
+    settings.individual_message = xmldoc.getElementsByTagName('individual_message')[0].childNodes[0].data
+    settings.text = xmldoc.getElementsByTagName('text')[0].childNodes[0].data
+    settings.volume = xmldoc.getElementsByTagName('volume')[0].childNodes[0].data
+
+
+def changeValue(xml_file, element_name, value):
+    xmldoc = minidom.parse(xml_file)
+    xmldoc.getElementsByTagName(element_name)[0].childNodes[0].data = value
+    with open(xml_file, "wb") as f:
+        xmldoc.writexml(f)
+
+
+def write(currentTime, settings):
+    doc = Document()
+
+    dataNode = doc.createElement('data')
+    doc.appendChild(dataNode)
+
+    timeNode = dataNode.appendChild(doc.createElement('alarm_time'))
+    timeNode.appendChild(doc.createTextNode(settings.alarm_time))
+
+    timeNode = dataNode.appendChild(doc.createElement('last_modified'))
+    timeNode.appendChild(doc.createTextNode(currentTime))
+
+    timeNode = dataNode.appendChild(doc.createElement('content'))
+    timeNode.appendChild(doc.createTextNode(settings.content))
+
+    daysNode = dataNode.appendChild(doc.createElement('days'))
+    daysNode.appendChild(doc.createTextNode(settings.days))
+
+    daysNode = dataNode.appendChild(doc.createElement('alarm_active'))
+    daysNode.appendChild(doc.createTextNode(settings.alarm_active))
+
+    daysNode = dataNode.appendChild(doc.createElement('individual_message'))
+    daysNode.appendChild(doc.createTextNode(settings.individual_message))
+
+    daysNode = dataNode.appendChild(doc.createElement('text'))
+    daysNode.appendChild(doc.createTextNode(settings.text))
+
+    daysNode = dataNode.appendChild(doc.createElement('volume'))
+    daysNode.appendChild(doc.createTextNode(settings.volume))
+
+    return doc

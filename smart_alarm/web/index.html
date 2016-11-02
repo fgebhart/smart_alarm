@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>jQuery Knob demo</title>
+
+        <!--[if IE]><script type="text/javascript" src="dist/excanvas.js"></script><![endif]-->
+        
+        <!-- jquery -->
+        <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+        
+        <!-- jquery ui for slider: http://api.jqueryui.com/slider/ -->
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+        
+        <!-- knob : https://github.com/aterrien/jQuery-Knob-->
+        <script src="libs/jquery.knob.js"></script>
+        
+        <!-- User functions -->
+        <script src="java_functions.js"></script>
+        
+        <!-- User stylesheets -->
+        <link rel="stylesheet" type="text/css" href="stylesheet.css">
+    </head>
+    
+    <body>
+        <div style="width:320px;height:60px;margin:auto">
+        Alarm:
+            <label for="cb_alarm_active">Aktiv</label>
+            <input type="checkbox" id="cb_alarm_active">
+        </div>    
+        
+       <div style="position:relative;width:320px;margin:auto;height:320px" id="div_clock" class="class_hide">
+            Uhrzeit:
+            <div style="position:absolute;left:10px;top:10px">
+                <input class="knob" data-min="0" data-max="23" data-bgColor="#333" data-fgColor="#ffec03" data-displayInput="false" data-width="300" data-height="300" data-thickness=".3" data-cursor="true" id="hour_knob">
+            </div>
+           <div style="position:absolute;left:41%;top:48%">
+               <span id="hour_text">00</span>
+               :
+                <span id="minute_text">00</span>
+           </div>
+            <div style="position:absolute;left:60px;top:60px">
+                <input class="knob" data-min="0" data-max="59" data-bgColor="#333" data-displayInput=false data-displayInput="false" data-width="200" data-height="200" data-thickness=".45" data-cursor="true" id="minute_knob">
+            </div>
+        </div>    
+
+        <div style="width:320px;height:60px;margin:auto" id="div_volume" class="class_hide">
+            Volume:
+            <div id="slider" style="margin:auto"></div>
+        </div>
+        
+        <div style="width:320px;height:60px;margin:auto" id="div:content" class="class_hide">
+            Content:
+            <div class="dropdown">
+            <button onclick="dd_content_fun()" class="dropbtn">%(hour)</button>
+                <div id="dd_content" class="dropdown-content">
+                    <a href="#podcast">Podcast</a>
+                    <a href="#stream">Stream</a>
+                    <a href="#mp3">Mp3s</a>
+                </div>
+            </div>
+        </div>
+                    
+    </body>
+</html>
