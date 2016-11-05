@@ -8,9 +8,12 @@
         <!-- jquery -->
         <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
         
-        <!-- jquery ui for slider: http://api.jqueryui.com/slider/ -->
+        <!-- jquery ui: http://api.jqueryui.com/slider/ -->
         <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
         <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+        
+        <!-- jquery ui touch : -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch/0.2.3/jquery.ui.touch-punch.min.js"></script>
         
         <!-- knob : https://github.com/aterrien/jQuery-Knob-->
         <script src="libs/jquery.knob.js"></script>
@@ -45,20 +48,21 @@
         </div>    
 
         <div style="width:320px;height:60px;margin:auto" id="div_volume" class="class_hide">
-            Volume:
+            Volume: <span id="volume_text">00</span>
             <div id="slider" style="margin:auto"></div>
         </div>
         
-        <div style="width:320px;height:60px;margin:auto" id="div:content" class="class_hide">
+        <div style="width:320px;height:60px;margin:auto" id="div_content" class="class_hide">
             Content:
-            <div class="dropdown">
-            <button onclick="dd_content_fun()" class="dropbtn">%(hour)</button>
-                <div id="dd_content" class="dropdown-content">
-                    <a href="#podcast">Podcast</a>
-                    <a href="#stream">Stream</a>
-                    <a href="#mp3">Mp3s</a>
-                </div>
-            </div>
+            <select id="sm_content" class="selectmenu">
+              <option value="mp3">MP3s</option>
+              <option value="podcast">Podcast</option>
+              <option value="stream">Stream</option>
+            </select>
+            
+            <!-- <div style="position:relative;width:300px;margin:auto" id="div_content_options">
+                &#8627; URL:
+            </div> -->
         </div>
                     
     </body>

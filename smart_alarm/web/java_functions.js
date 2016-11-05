@@ -1,4 +1,9 @@
 $(function($) {
+    
+    $( window ).load(function() {
+        loadDoc();
+    });
+    
     //---------------------------------------------------
     // Checkbox
     //---------------------------------------------------
@@ -30,7 +35,7 @@ $(function($) {
     $(".knob").knob({
         change : function (value) {
             // console.log("change : " + value);
-            var type = $($(this).attr('$')[0]).attr('id');
+            var type = this.$[0].id;
             value = String(Math.round(value));
             if(value.length == 1)
             {
@@ -45,8 +50,8 @@ $(function($) {
             }
         },
         release : function (value) {
-            // console.log("release : " + value);
-            var type = $($(this).attr('$')[0]).attr('id');
+            //var type = $($(this).attr('$')[0]).attr('id');
+            var type = this.$[0].id;
             value = String(value);
             
             if(value.length == 1)
@@ -58,20 +63,13 @@ $(function($) {
             {
                 $("#hour_text").text(value)
                 value = value + ':' + $("#minute_text").text();
-                //$.post("index.html",
-                //{
-                //  hour: value,
-                //});
             } else if (type == 'minute_knob')
             {
                 $("#minute_text").text(value)
                 value = $("#hour_text").text() + ':' + value;
-                //$.post("index.html",
-                //{
-                //  minute: value,
-                //});
             }
 
+            console.log("new alarm time: " + value);
             $.post("index.html",
             {
               alarm_time: value,
@@ -146,10 +144,11 @@ $(function($) {
         var days = xmlDoc.getElementsByTagName('days')[0].childNodes[0].nodeValue;
         var alarm_active = xmlDoc.getElementsByTagName('alarm_active')[0].childNodes[0].nodeValue;
         
-        var alarm_active = (alarm_active == "1");
+        var alarm_active = (alarm_active == "1"); //convert to bool
         var hour_value = alarm_time.substr(0, alarm_time.indexOf(':'));
         var minute_value = alarm_time.substr(alarm_time.indexOf(':')+1, 2);
-        
+                
+        // set values
         $( "#slider" ).slider( "option", "value", volume); 
 
         $('#minute_knob').val(minute_value).trigger('change');
@@ -157,6 +156,9 @@ $(function($) {
         
         $('#cb_alarm_active').prop("checked", alarm_active);
         $("#cb_alarm_active").button("refresh");
+        
+        $("#sm_content").val(content).prop('selected', true);
+        $("#sm_content").selectmenu( "refresh" );  
     };
 
     
@@ -166,50 +168,45 @@ $(function($) {
     $( "#slider" ).slider({
         max: 100,
         min: 0,
+        animate: "fast",
 
         change: function (event, ui )
         {
             console.log("volume value : " + ui.value);
+            $("#volume_text").text(ui.value);
             $.post("index.html",
                 {
                   volume: ui.value,
                 });
-        }
-    });
-
-    $( "#slider" ).on( "slidechange", function( event, ui ) {} );
-    
-    
-    $( window ).load(function() {
-        loadDoc();
-    });
-
-    }); 
-
-
-    //---------------------------------------------------
-    // Dropdown
-    //---------------------------------------------------
-    // functions not visible inside loading ready function yet
-    function dd_content_fun(){
-        document.getElementById("dd_content").classList.toggle("show");
-    };
-
-    // Close the dropdown if the user clicks outside of it
-    window.onclick = function(event)
-    {
-        if (!event.target.matches('.dropbtn'))
+        },
+        
+        slide : function (event, ui)
         {
-
-            var dropdowns = document.getElementsByClassName("dropdown-content");
-            var i;
-            for (i = 0; i < dropdowns.length; i++)
-            {
-                var openDropdown = dropdowns[i];
-                if (openDropdown.classList.contains('show'))
-                {
-                    openDropdown.classList.remove('show');
-                }
-            }
+            $("#volume_text").text(ui.value);
         }
-    };        
+    });
+
+    // Bind event listener to slide events:
+    $( "#slider" ).on( "slidechange", function( event, ui ) {} );
+    $( "#slider" ).on( "slide", function( event, ui ) {} );
+    
+      
+    //---------------------------------------------------
+    // Select Menu
+    //---------------------------------------------------
+    $( ".selectmenu" ).selectmenu({
+        select: function( event, ui ) {
+            //save in xml file
+            console.log("selected content : " + ui.item.value)
+            $.post("index.html",
+                {
+                  content: ui.item.value,
+                });
+        }
+    });
+    
+    // Bind event listener to selectmenuselect event:
+    $( ".selectmenu" ).on( "selectmenuselect", function( event, ui ) {} );
+     
+}); 
+       
