@@ -70,8 +70,14 @@ def show_404_app(environ, start_response):
 
 if __name__ == '__main__':
     from wsgiref.simple_server import make_server
+    import webbrowser
+
     httpd = make_server('', 8090, app)
     print('Serving on port 8090...')
+
+    url = "http://127.0.0.1:8090"
+    webbrowser.open(url)
+
     print(os.getcwd())
     try:
         while True:
