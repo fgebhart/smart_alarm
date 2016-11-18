@@ -17,7 +17,6 @@ GPIO.setup(amp_switch_pin, GPIO.OUT)
 
 
 def play_mp3_file(mp3_file):
-    """using pygame lib in order to play mp3 sound files"""
     # set output high in order to turn on amplifier
     GPIO.output(amp_switch_pin, 1)
     pygame.mixer.init()
@@ -34,7 +33,7 @@ def play_mp3_file(mp3_file):
         else:
             continue
     # set ouput low in order to turn off amplifier
-    GPIO.output(amp_switch_pin, 0)
+    #GPIO.output(amp_switch_pin, 0)
     pygame.mixer.quit()
 
 
@@ -55,17 +54,16 @@ def adjust_volume(value):
     """adjusts the audio volume by the given value (0-100%)"""
     volume_command = str('amixer set PCM -- ' + str(value) + '%')
     os.system(volume_command)
-    url_to_adjust_volume_sound = str(str(os.path.dirname(__file__)) + '/music/blop.mp3')
-    play_mp3_file(url_to_adjust_volume_sound)
+    play_mp3_file('/home/pi/smart_alarm/smart_alarm/sounds/blop.mp3')
 
 
 def play_wakeup_music():
     """find all mp3 files in the folder /home/pi/music
     and play one of them at random"""
     list_of_music_files = []
-    for file in os.listdir("/home/pi/"):
+    for file in os.listdir("/home/pi/smart_alarm/smart_alarm/music"):
         if file.endswith(".mp3"):
-            list_of_music_files.append(file)
+            list_of_music_files.append(str("/home/pi/smart_alarm/smart_alarm/music/" + str(file)))
 
     # figure out random track of the found mp3 files
     random_track = randint(0, len(list_of_music_files)-1)
@@ -89,5 +87,5 @@ def play_online_stream():
 
     os.system('mpc stop')
     # set ouput low in order to turn off amplifier
-    GPIO.output(amp_switch_pin, 0)
+    #GPIO.output(amp_switch_pin, 0)
     print 'alarm turned off'

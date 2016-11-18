@@ -12,9 +12,9 @@
 
     <alarm_active>1</alarm_active>
 
-    <individual_message>1</individual_message>
+    <individual_message>0</individual_message>
 
-    <text>wakie wakie little sleepy</text>
+    <text>wakeie wakeie little sleepy</text>
 
     <volume>100</volume>
 

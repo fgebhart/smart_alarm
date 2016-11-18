@@ -46,6 +46,7 @@ from display_class import Display
 from sounds import *
 from xml_belongings import *
 import time
+import os
 
 
 # import dispay_class
@@ -127,7 +128,7 @@ def delete_old_files(time_to_alarm, alarm_active):
     """checks for old mp3 files and deletes them"""
     # find all mp3 files and append them to a list
     list_of_mp3_files = []
-    for file in os.listdir("/home/pi"):
+    for file in os.listdir("/home/pi/smart_alarm/smart_alarm"):
         if file.startswith("nachrichten"):
             list_of_mp3_files.append(file)
 
