@@ -15,7 +15,7 @@ os.system('gpio_alt -p 18 -f 5')
 
 
 # run python web-server
-os.system('python /home/pi/smart_alarm/smart_alarm/python_server.py &')
+# os.system('python /home/pi/smart_alarm/smart_alarm/python_server.py &')
 
 
 # run smart_alarm main script
