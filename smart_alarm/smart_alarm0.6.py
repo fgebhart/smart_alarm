@@ -131,7 +131,7 @@ def delete_old_files(time_to_alarm, alarm_active):
 
 
 # read out the settings in 'data.xml' from the same folder
-xml_data = read_xml_file_list('data.xml')
+xml_data = read_xml_file_namedtuple('data.xml')
 
 # assign the xml data to the corresponding variables
 alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume = update_settings('data.xml')
@@ -157,7 +157,7 @@ try:
         display.clear_class()
 
         # read xml file and store data to xml_data
-        new_xml_data = read_xml_file_list('data.xml')
+        new_xml_data = read_xml_file_namedtuple('data.xml')
 
         # check if xml file was updated. If so, update the variables
         if xml_data != new_xml_data:

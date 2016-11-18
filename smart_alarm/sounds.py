@@ -17,7 +17,7 @@ def play_mp3_file(mp3_file):
     pygame.mixer.music.play()
     while pygame.mixer.music.get_busy():
         time.sleep(0.1)
-        if GPIO.input(11) == 1:
+        if GPIO.input(24) == 1:
             pygame.mixer.music.stop()
             pygame.mixer.quit()
             print 'alarm turned off'
@@ -40,7 +40,8 @@ def adjust_volume(value):
     """adjusts the audio volume by the given value (0-100%)"""
     volume_command = str('amixer set PCM -- ' + str(value) + '%')
     os.system(volume_command)
-    play_mp3_file('/home/pi/music/blop.mp3')
+    url_to_adjust_volume_sound = str(str(os.path.dirname(__file__)) + '/music/blop.mp3')
+    play_mp3_file(url_to_adjust_volume_sound)
 
 
 def play_wakeup_music():
