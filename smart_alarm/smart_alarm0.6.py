@@ -41,7 +41,7 @@ Possible internet radio station (working witch MPC):
 import urllib2
 import RPi.GPIO as GPIO
 import threading
-from read_xml import read_xml_file_list, read_xml_file_namedtuple
+# from read_xml import read_xml_file_list, read_xml_file_namedtuple
 from display_class import Display
 from sounds import *
 from xml_belongings import *
@@ -52,8 +52,8 @@ import time
 display = Display()
 
 # configure RPI GPIO. Make sure to use 1k ohms resistor to protect input pin
-GPIO.setmode(GPIO.BOARD)
-GPIO.setup(11, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(24, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 # set decimal point flag - for decimal point blinking
 point = False
