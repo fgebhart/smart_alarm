@@ -51,9 +51,16 @@ import time
 # import dispay_class
 display = Display()
 
+# set button input pin
+button_input_pin = 24
+# set pin for amplifier switch
+amp_switch_pin = 12
+
 # configure RPI GPIO. Make sure to use 1k ohms resistor to protect input pin
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(24, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(button_input_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+# set pin to output
+GPIO.setup(amp_switch_pin, GPIO.OUT)
 
 # set decimal point flag - for decimal point blinking
 point = False
@@ -131,7 +138,9 @@ def delete_old_files(time_to_alarm, alarm_active):
 
 
 # read out the settings in 'data.xml' from the same folder
-xml_data = read_xml_file_namedtuple('data.xml')
+xml_data = update_settings('data.xml')
+
+print 'xml data: ', xml_data
 
 # assign the xml data to the corresponding variables
 alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume = update_settings('data.xml')
@@ -157,7 +166,7 @@ try:
         display.clear_class()
 
         # read xml file and store data to xml_data
-        new_xml_data = read_xml_file_namedtuple('data.xml')
+        new_xml_data = update_settings('data.xml')
 
         # check if xml file was updated. If so, update the variables
         if xml_data != new_xml_data:
@@ -241,7 +250,7 @@ try:
                         just_played_alarm = True
 
 
-                    elif content == 'internet-radio':
+                    elif content == 'stream':
                         # since internet-radio is preferred, play the online stream
                         # display the current time
                         display.show_time(now)
