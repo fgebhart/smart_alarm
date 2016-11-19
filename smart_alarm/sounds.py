@@ -15,6 +15,26 @@ GPIO.setmode(GPIO.BCM)
 # set pin to output
 GPIO.setup(amp_switch_pin, GPIO.OUT)
 
+# create timestamp for button_callback function
+time_stamp = time.time()
+
+button_pressed = False
+
+# Define a threaded callback function to run in another thread when events are detected
+def button_callback(channel):
+    global time_stamp, button_pressed       # put in to debounce
+
+    time_now = time.time()
+    if (time_now - time_stamp) >= 1:
+        if GPIO.input(button_input_pin):  # if port 24 == 1
+            print "Rising edge detected on 24"
+            button_pressed = True
+            time.sleep(5)
+            button_pressed = False
+        else:  # if port 24 != 1
+            print "Falling edge detected on 24"
+    time_stamp = time_now
+
 
 def play_mp3_file(mp3_file):
     # set output high in order to turn on amplifier
@@ -25,7 +45,7 @@ def play_mp3_file(mp3_file):
     pygame.mixer.music.play()
     while pygame.mixer.music.get_busy():
         time.sleep(0.1)
-        if GPIO.input(button_input_pin) == 1:
+        if button_pressed == True:
             pygame.mixer.music.stop()
             pygame.mixer.quit()
             print 'alarm turned off'
@@ -80,7 +100,7 @@ def play_online_stream():
     os.system('mpc play')
 
     while True:
-        if button_pressed() == False:
+        if button_pressed == False:
             pass
         else:
             break
