@@ -25,11 +25,18 @@ Features of this python script so far:
 - dim display brightness, since default value is too damn bright for sleeping
 - enabled volume adjustment
 - enabled internet radio / music streaming as possible wake-up sound
+- button interrupt instead of waiting
+- turn off and on amplifier in order to suppress background noise
 -
 
 Todo:
 - find internet radio station without commercials and too much talk
-- button interrupt instead of waiting
+- enable function to run when button is pressed without alarm running
+    * for example 'say time left till alarm'
+- add hostname to raspberry pi -> accessable via this name through browser
+- Fix Error: 'socket.error: [Errno 98] Address already in use' in python_server.py
+
+
 
 Possible internet radio station (working witch MPC):
 - http://streaming.radionomy.com/The-Smooth-Lounge?lang=en-US%2cen%3bq%3d0.8%2cde%3bq%3d0.6
@@ -57,11 +64,15 @@ button_input_pin = 24
 # set pin for amplifier switch
 amp_switch_pin = 12
 
+# turn off GPIO warnings
+GPIO.setwarnings(False)
 # configure RPI GPIO. Make sure to use 1k ohms resistor to protect input pin
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(button_input_pin, GPIO.IN)
 # set pin to output
 GPIO.setup(amp_switch_pin, GPIO.OUT)
+# set ouput low in order to turn off amplifier and nullify noise
+GPIO.output(amp_switch_pin, 0)
 
 
 
@@ -116,11 +127,11 @@ def delete_old_files(time_to_alarm, alarm_active):
     """checks for old mp3 files and deletes them"""
     # find all mp3 files and append them to a list
     list_of_mp3_files = []
-    for file in os.listdir("/home/pi/smart_alarm/smart_alarm"):
-        if file.startswith("nachrichten"):
-            list_of_mp3_files.append(file)
+    for file in os.listdir('/home/pi/smart_alarm/smart_alarm'):
+        if file.startswith('nachrichten'):
+            list_of_mp3_files.append('/home/pi/smart_alarm/smart_alarm/' + str(file))
 
-    # either if the time_to_alarm is 10 minutes away from going offf, or if it is deactivated
+    # either if the time_to_alarm is 10 minutes away from going off, or if it is deactivated
     if time_to_alarm < -10 or time_to_alarm > 10 or alarm_active == '0':
         for file in range(len(list_of_mp3_files)):
             os.remove(list_of_mp3_files[file])
@@ -130,10 +141,11 @@ def delete_old_files(time_to_alarm, alarm_active):
 GPIO.add_event_detect(button_input_pin, GPIO.BOTH, callback=button_callback)
 
 # read out the settings in 'data.xml' from the same folder
-xml_data = update_settings('data.xml')
+xml_data = update_settings('/home/pi/smart_alarm/smart_alarm/data.xml')
 
 # assign the xml data to the corresponding variables
-alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume = update_settings('data.xml')
+alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume \
+    = update_settings('/home/pi/smart_alarm/smart_alarm/data.xml')
 
 # set flag for just played the news
 just_played_alarm = False
@@ -156,7 +168,7 @@ try:
         display.clear_class()
 
         # read xml file and store data to xml_data
-        new_xml_data = update_settings('data.xml')
+        new_xml_data = update_settings('/home/pi/smart_alarm/smart_alarm/data.xml')
 
         # check if xml file was updated. If so, update the variables
         if xml_data != new_xml_data:
@@ -169,7 +181,6 @@ try:
 
         time_to_alarm = int(int(str(alarm_time[:2]) + str(alarm_time[3:]))) - int(now)
 
-        #print 'time to alarm =', time_to_alarm
 
         # check if alarm is activated
         if alarm_active == '1' and just_played_alarm == False:     # alarm is activated start managing to go off
@@ -296,10 +307,7 @@ try:
 
         time.sleep(1)
 
-#except KeyboardInterrupt:
-#    GPIO.cleanup()
-#    print "\nBye"
 
 finally:  # this block will run no matter how the try block exits
-    GPIO.cleanup()  # clean up after yourself
+    GPIO.output(amp_switch_pin, 0)  # switch amp off
     print '\ncheers mate!'

@@ -11,34 +11,30 @@ button_input_pin = 24
 # set pin for amplifier switch
 amp_switch_pin = 12
 
+# turn off GPIO warnings
+GPIO.setwarnings(False)
+
 GPIO.setmode(GPIO.BCM)
 # set pin to output
 GPIO.setup(amp_switch_pin, GPIO.OUT)
-
-# create timestamp for button_callback function
-time_stamp = time.time()
 
 button_pressed = False
 
 # Define a threaded callback function to run in another thread when events are detected
 def button_callback(channel):
-    global time_stamp, button_pressed       # put in to debounce
+    global  button_pressed       # put in to debounce
 
-    time_now = time.time()
-    if (time_now - time_stamp) >= 1:
-        if GPIO.input(button_input_pin):  # if port 24 == 1
-            print "Rising edge detected on 24"
-            button_pressed = True
-            time.sleep(5)
-            button_pressed = False
-        else:  # if port 24 != 1
-            print "Falling edge detected on 24"
-    time_stamp = time_now
+    if GPIO.input(button_input_pin):  # if port 24 == 1
+        print "button pressed"
+        button_pressed = True
+        time.sleep(5)
+        button_pressed = False
 
 
 def play_mp3_file(mp3_file):
     # set output high in order to turn on amplifier
     GPIO.output(amp_switch_pin, 1)
+    time.sleep(0.3)
     pygame.mixer.init()
     pygame.mixer.music.load(mp3_file)
     print "now playing file: ", mp3_file
@@ -52,8 +48,9 @@ def play_mp3_file(mp3_file):
             break
         else:
             continue
+    time.sleep(0.5)
     # set ouput low in order to turn off amplifier
-    #GPIO.output(amp_switch_pin, 0)
+    GPIO.output(amp_switch_pin, 0)
     pygame.mixer.quit()
 
 
@@ -61,11 +58,13 @@ def say(text):
     """synthesizes the given text to speech"""
     # set output high in order to turn on amplifier
     GPIO.output(amp_switch_pin, 1)
+    time.sleep(0.3)
     engine = pyttsx.init()
     engine.setProperty('rate', 115)
     # remove "pass" and uncomment next line in order to enable this function
     engine.say(text)
     engine.runAndWait()
+    time.sleep(0.5)
     # set ouput low in order to turn off amplifier
     GPIO.output(amp_switch_pin, 0)
 
@@ -97,6 +96,7 @@ def play_online_stream():
     print 'now playing internet radio'
     # set output high in order to turn on amplifier
     GPIO.output(amp_switch_pin, 1)
+    time.sleep(0.3)
     os.system('mpc play')
 
     while True:
@@ -106,6 +106,7 @@ def play_online_stream():
             break
 
     os.system('mpc stop')
+    time.sleep(0.5)
     # set ouput low in order to turn off amplifier
-    #GPIO.output(amp_switch_pin, 0)
+    GPIO.output(amp_switch_pin, 0)
     print 'alarm turned off'
