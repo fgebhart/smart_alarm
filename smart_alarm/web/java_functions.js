@@ -3,9 +3,9 @@ $(function($) {
     $( window ).load(function() {
         loadDoc();
     });
-    
+        
     //---------------------------------------------------
-    // Checkbox
+    // Checkboxes
     //---------------------------------------------------
     $( "input[type='checkbox']" ).checkboxradio(); //use jquery ui
     
@@ -28,9 +28,46 @@ $(function($) {
         });    
     });
     
+    $('.cb_days').change(function() {
+        
+        var sList = "";
+        $('.cb_days').each(function () {
+            sList += $(this).is(":checked") ? $(this).val() + "," : "";
+        });
+        
+        if(sList.length >0)
+        {
+            sList = sList.substr(0, sList.length-1)
+        }
+        
+        $.post("index.html",
+        {
+          days: sList,
+        });    
+    });
+    
+    $('#cb_individual_message').change(function() {
+        var value;
+        if($(this).is(":checked")) 
+        {
+            value = 1;
+            $("#txt_individual_message").show("fast");
+        }
+        else
+        {
+            value = 0;
+            $("#txt_individual_message").hide("fast");
+        }
+        
+        $.post("index.html",
+        {
+          individual_message: value,
+        });    
+    });
+    
     
     //---------------------------------------------------
-    //knob functions
+    // Knob functions
     //---------------------------------------------------    
     $(".knob").knob({
         change : function (value) {
@@ -121,7 +158,7 @@ $(function($) {
 
     
     //---------------------------------------------------
-    //Read XML File
+    // Read XML File
     //---------------------------------------------------
     function loadDoc(){
       var xhttp = new XMLHttpRequest();
@@ -143,8 +180,12 @@ $(function($) {
         var alarm_time = xmlDoc.getElementsByTagName('alarm_time')[0].childNodes[0].nodeValue;
         var days = xmlDoc.getElementsByTagName('days')[0].childNodes[0].nodeValue;
         var alarm_active = xmlDoc.getElementsByTagName('alarm_active')[0].childNodes[0].nodeValue;
+        var individual_message = xmlDoc.getElementsByTagName('individual_message')[0].childNodes[0].nodeValue;
+        var individual_message_text = xmlDoc.getElementsByTagName('text')[0].childNodes[0].nodeValue;
         
         var alarm_active = (alarm_active == "1"); //convert to bool
+        var individual_message = (individual_message == "1"); //convert to bool
+        var days_array = days.split(",");
         var hour_value = alarm_time.substr(0, alarm_time.indexOf(':'));
         var minute_value = alarm_time.substr(alarm_time.indexOf(':')+1, 2);
                 
@@ -155,15 +196,30 @@ $(function($) {
         $('#hour_knob').val(hour_value).trigger('change');
         
         $('#cb_alarm_active').prop("checked", alarm_active);
-        $("#cb_alarm_active").button("refresh");
+        $("#cb_alarm_active").change(); // to set the elements of class "hide" visible or not
+        //$("#cb_alarm_active").button("refresh"); // just refreshes the button, but doesn't hide the other elements
         
         $("#sm_content").val(content).prop('selected', true);
-        $("#sm_content").selectmenu( "refresh" );  
+        $("#sm_content").selectmenu( "refresh" );
+        
+        $("#cb_individual_message").prop("checked", individual_message);
+        $("#cb_individual_message").change();
+        $("#txt_individual_message").val(individual_message_text);
+        
+        $('.cb_days').each(function () {
+            var value = $(this).val();
+            if(days_array.indexOf(String(value)) != -1)
+            {
+                $(this).prop("checked", true);
+            }   
+        });
+        $(".cb_days").button("refresh"); 
+        
     };
 
     
     //---------------------------------------------------
-    //Slider
+    // Slider
     //---------------------------------------------------
     $( "#slider" ).slider({
         max: 100,

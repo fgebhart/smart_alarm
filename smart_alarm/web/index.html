@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>jQuery Knob demo</title>
+        <title>IoT Clock</title>
 
         <!--[if IE]><script type="text/javascript" src="dist/excanvas.js"></script><![endif]-->
         
@@ -23,16 +23,19 @@
         
         <!-- User stylesheets -->
         <link rel="stylesheet" type="text/css" href="stylesheet.css">
+        
+        
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     </head>
     
     <body>
         <div style="width:320px;height:60px;margin:auto">
-        Alarm:
-            <label for="cb_alarm_active">Aktiv</label>
+            <label for="cb_alarm_active">Alarm Active</label>
             <input type="checkbox" id="cb_alarm_active">
         </div>    
         
-       <div style="position:relative;width:320px;margin:auto;height:320px" id="div_clock" class="class_hide">
+       <div style="position:relative;width:320px;margin:auto;height:330px" id="div_clock" class="class_hide">
             Uhrzeit:
             <div style="position:absolute;left:10px;top:10px">
                 <input class="knob" data-min="0" data-max="23" data-bgColor="#333" data-fgColor="#ffec03" data-displayInput="false" data-width="300" data-height="300" data-thickness=".3" data-cursor="true" id="hour_knob">
@@ -45,11 +48,23 @@
             <div style="position:absolute;left:60px;top:60px">
                 <input class="knob" data-min="0" data-max="59" data-bgColor="#333" data-displayInput=false data-displayInput="false" data-width="200" data-height="200" data-thickness=".45" data-cursor="true" id="minute_knob">
             </div>
-        </div>    
-
-        <div style="width:320px;height:60px;margin:auto" id="div_volume" class="class_hide">
-            Volume: <span id="volume_text">00</span>
-            <div id="slider" style="margin:auto"></div>
+        </div>
+        
+        <div style="width:320px;height:120px;margin:auto" class="class_hide">
+            <label for="cb_days_mon" style="width:60px">Mon</label>
+            <input type="checkbox" id="cb_days_mon" class="cb_days" value="1">
+            <label for="cb_days_tue" style="width:60px">Tue</label>
+            <input type="checkbox" id="cb_days_tue" class="cb_days" value="2">
+            <label for="cb_days_wed" style="width:60px">Wed</label>
+            <input type="checkbox" id="cb_days_wed" class="cb_days" value="3">
+            <label for="cb_days_thu" style="width:60px">Thu</label>
+            <input type="checkbox" id="cb_days_thu" class="cb_days" value="4">
+            <label for="cb_days_fri" style="width:60px">Fri</label>
+            <input type="checkbox" id="cb_days_fri" class="cb_days" value="5">
+            <label for="cb_days_sat" style="width:60px">Sat</label>
+            <input type="checkbox" id="cb_days_sat" class="cb_days" value="6">
+            <label for="cb_days_sun" style="width:60px">Sun</label>
+            <input type="checkbox" id="cb_days_sun" class="cb_days" value="0">
         </div>
         
         <div style="width:320px;height:60px;margin:auto" id="div_content" class="class_hide">
@@ -59,11 +74,18 @@
               <option value="podcast">Podcast</option>
               <option value="stream">Stream</option>
             </select>
-            
-            <!-- <div style="position:relative;width:300px;margin:auto" id="div_content_options">
-                &#8627; URL:
-            </div> -->
         </div>
+        
+        <div style="width:320px;height:60px;margin:auto" id="div_volume" class="class_hide">
+            Volume: <span id="volume_text">00</span>
+            <div id="slider" style="margin:auto"></div>
+        </div>
+        
+        <div style="width:320px;height:60px;margin:auto" class="class_hide">
+            <label for="cb_individual_message">Individual Message</label>
+            <input type="checkbox" id="cb_individual_message">
+            <input type="text" id="txt_individual_message">
+        </div>    
                     
     </body>
 </html>
