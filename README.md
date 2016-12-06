@@ -12,5 +12,5 @@ open source alarm clock
 
 ### Picture of the current vesion:
 
-![alt tag](https://raw.githubusercontent.com/fgebhart/smart_alarm/master/rpi_alarm.jpg)
+![alt tag](https://raw.githubusercontent.com/fgebhart/smart_alarm/master/rpi_zero_alarm.jpg)
 
