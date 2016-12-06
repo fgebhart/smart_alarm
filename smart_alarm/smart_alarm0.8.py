@@ -193,7 +193,7 @@ try:
                 if time_to_alarm == 0:
 
                     # check if news or audio (offline mp3) is programmed
-                    if content == 'news':
+                    if content == 'podcast':
 
                         # display the current time
                         display.show_time(now)
@@ -228,7 +228,7 @@ try:
                         just_played_alarm = True
 
 
-                    elif content == 'music':
+                    elif content == 'mp3':
                         # since music is preferred, play the offline mp3 files
 
                         print 'now playing music'
