@@ -75,7 +75,6 @@ GPIO.setup(amp_switch_pin, GPIO.OUT)
 GPIO.output(amp_switch_pin, 0)
 
 
-
 # set decimal point flag - for decimal point blinking
 point = False
 
@@ -137,6 +136,57 @@ def delete_old_files(time_to_alarm, alarm_active):
             os.remove(list_of_mp3_files[file])
 
 
+def read_photocell():
+    """reads the surrounding brightness using the
+    connected photocell and transforms the values to
+    a scale of 0 - 15 in order to adjust the displays
+    brightness"""
+
+    photocell_input_pin = 20
+    upper_limit = 400
+    lower_limit = 1
+    counter = 0
+    summed_up_brightness = 0
+    max_iterations = 5
+
+    while counter < max_iterations:
+        brightness = 0
+        # needs to be put low first, so the capacitor is empty
+        GPIO.setup(photocell_input_pin, GPIO.OUT)
+        GPIO.output(photocell_input_pin, GPIO.LOW)
+
+        time.sleep(0.1)
+
+        # set to input to read out
+        GPIO.setup(photocell_input_pin, GPIO.IN)
+        # increases the brightness variable depending on the charge
+        # of the capacitor (400 = dark; 0 = bright)
+        while GPIO.input(photocell_input_pin) == GPIO.LOW:
+            brightness += 1
+
+        summed_up_brightness = summed_up_brightness + brightness
+        counter += 1
+
+    # calculate the mean of the last 'max_iterations' measurements:
+    brightness = summed_up_brightness / max_iterations
+
+    # turn values up-side down: dark-to-bright
+    brightness = upper_limit - brightness
+
+    # limit the value of measured brightness
+    if brightness > upper_limit:
+        brightness = brightness - (brightness - upper_limit)
+    elif brightness < lower_limit:
+        brightness = brightness - brightness + lower_limit
+
+    # scale brightness to the scale of 0 - 15
+    brightness = brightness / (upper_limit / 15)
+
+    # print 'brightness = ', brightness
+
+    return brightness
+
+
 # start the the button interrupt thread
 GPIO.add_event_detect(button_input_pin, GPIO.BOTH, callback=button_callback)
 
@@ -150,14 +200,12 @@ alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual
 # set flag for just played the news
 just_played_alarm = False
 
-# change display brightness
-# display.set_brightness(15)
-
 # start smart alarm:
-display.scroll('*WELCOME*', 1)
+display.scroll(' *WELCOME* ', 1)
 
 # change display brightness
 display.set_brightness(0)
+
 
 try:
     while True:
@@ -178,9 +226,7 @@ try:
 
             adjust_volume(volume)
 
-
         time_to_alarm = int(int(str(alarm_time[:2]) + str(alarm_time[3:]))) - int(now)
-
 
         # check if alarm is activated
         if alarm_active == '1' and just_played_alarm == False:     # alarm is activated start managing to go off
@@ -231,8 +277,6 @@ try:
                     elif content == 'mp3':
                         # since music is preferred, play the offline mp3 files
 
-                        print 'now playing music'
-
                         # display the current time
                         display.show_time(now)
                         # write content to display
@@ -270,10 +314,6 @@ try:
                         # set flag for just played alarm
                         just_played_alarm = True
 
-                    else:
-                        pass
-
-
         if time_to_alarm != 0:
             # set just_played_alarm back to False in order to not miss the next alarm
             just_played_alarm = False
@@ -281,13 +321,8 @@ try:
         # display the current time
         display.show_time(now)
 
-        # manage to get the decimal point blinking
-        if point:
-            display.set_decimal(1, point)
-            point = False
-        else:
-            display.set_decimal(1, point)
-            point = True
+        # set display brightness depending on the area brightness reading the photocell
+        display.set_brightness(read_photocell())
 
         # check if alarm is active and set third decimal point
         if alarm_active == '1':
@@ -296,16 +331,24 @@ try:
             # else if alarm is deactivated, turn last decimal point off
             display.set_decimal(3, False)
 
-        # write content to display
-        display.write()
+        if point:
+            display.set_decimal(1, point)
+            point = False
+            # write content to display
+            display.write()
+            time.sleep(0.8)
+        else:
+            display.set_decimal(1, point)
+            point = True
+            # write content to display
+            display.write()
+            time.sleep(0.8)
 
         # delete old and unneeded mp3 files
         delete_old_files(time_to_alarm, alarm_active)
 
         # update xml file in order to find differences in next loop
         xml_data = new_xml_data
-
-        time.sleep(1)
 
 
 finally:  # this block will run no matter how the try block exits
