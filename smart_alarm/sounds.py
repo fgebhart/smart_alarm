@@ -22,13 +22,14 @@ button_pressed = False
 
 # Define a threaded callback function to run in another thread when events are detected
 def button_callback(channel):
-    global  button_pressed       # put in to debounce
+    global button_pressed       # put in to debounce
 
     if GPIO.input(button_input_pin):  # if port 24 == 1
         print "button pressed"
         button_pressed = True
         time.sleep(5)
         button_pressed = False
+    return button_pressed
 
 
 def play_mp3_file(mp3_file):
@@ -41,7 +42,7 @@ def play_mp3_file(mp3_file):
     pygame.mixer.music.play()
     while pygame.mixer.music.get_busy():
         time.sleep(0.1)
-        if button_pressed == True:
+        if button_pressed:
             pygame.mixer.music.stop()
             pygame.mixer.quit()
             print 'alarm turned off'

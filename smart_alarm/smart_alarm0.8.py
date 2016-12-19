@@ -33,7 +33,6 @@ Todo:
 - find internet radio station without commercials and too much talk
 - enable function to run when button is pressed without alarm running
     * for example 'say time left till alarm'
-- add hostname to raspberry pi -> accessable via this name through browser
 - Fix Error: 'socket.error: [Errno 98] Address already in use' in python_server.py
 
 
@@ -52,6 +51,7 @@ import threading
 from display_class import Display
 from sounds import *
 from xml_belongings import *
+from settings import *
 import time
 import os
 
@@ -187,6 +187,33 @@ def read_photocell():
     return brightness
 
 
+def tell_when_button_pressed(alarm_days, alarm_time, button_status):
+    """when button is pressed and alarm is not acitve
+    tell the user some information, defined here"""
+
+    today_nr = time.strftime('%w')
+
+    now = time.strftime("%H%M")
+    time_to_alarm = (int(alarm_time[:2]) * 60 + int(alarm_time[3:])) - (int(now[:2]) * 60 + int(now[2:]))
+
+    hours_left = time_to_alarm / 60
+    minutes_left = time_to_alarm % 60
+
+
+    if today_nr in alarm_days and time_to_alarm > 0:
+        # next alarm is today
+        day = 'today'
+        info_message = 'The next alarm will go off %s at %s. Which is %s hours and %s minutes'\
+                       % (day, alarm_time, hours_left, minutes_left)
+    """
+    while just_played_alarm == False:
+        # check if button is being pressed
+        if button_callback() == True:
+            print 'button is pressed without alarm'
+            say(info_message)
+    """
+
+
 # start the the button interrupt thread
 GPIO.add_event_detect(button_input_pin, GPIO.BOTH, callback=button_callback)
 
@@ -199,6 +226,14 @@ alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual
 
 # set flag for just played the news
 just_played_alarm = False
+
+# start thread for reading button activity
+d = threading.Thread(target=tell_when_button_pressed, args=(alarm_days, alarm_time, button_pressed,))
+d.start()
+
+# say welcome message
+welcome_message = 'What is my purpose?'
+say(welcome_message)
 
 # start smart alarm:
 display.scroll(' *WELCOME* ', 1)
@@ -230,7 +265,7 @@ try:
 
         # check if alarm is activated
         if alarm_active == '1' and just_played_alarm == False:     # alarm is activated start managing to go off
-            # find the actual day of the weel in format of a number in order to compare to the xml days variable
+            # find the actual day of the week in format of a number in order to compare to the xml days variable
             today_nr = time.strftime('%w')
 
             if today_nr in alarm_days:      # check if current day is programmed to alarm
@@ -336,13 +371,13 @@ try:
             point = False
             # write content to display
             display.write()
-            time.sleep(0.8)
+            time.sleep(0.6)
         else:
             display.set_decimal(1, point)
             point = True
             # write content to display
             display.write()
-            time.sleep(0.8)
+            time.sleep(0.6)
 
         # delete old and unneeded mp3 files
         delete_old_files(time_to_alarm, alarm_active)
@@ -352,5 +387,6 @@ try:
 
 
 finally:  # this block will run no matter how the try block exits
+    say('Goodbye')
     GPIO.output(amp_switch_pin, 0)  # switch amp off
-    print '\ncheers mate!'
+    print '\nbye!'
