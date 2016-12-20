@@ -71,12 +71,9 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(button_input_pin, GPIO.IN)
 # set pin to output
 GPIO.setup(amp_switch_pin, GPIO.OUT)
-# set ouput low in order to turn off amplifier and nullify noise
+# set output low in order to turn off amplifier and nullify noise
 GPIO.output(amp_switch_pin, 0)
 
-
-# set decimal point flag - for decimal point blinking
-point = False
 
 # dlf podcast link to XML file. Correct if modified!
 dlf_news_url = "http://www.deutschlandfunk.de/podcast-nachrichten.1257.de.podcast.xml"
@@ -182,8 +179,6 @@ def read_photocell():
     # scale brightness to the scale of 0 - 15
     brightness = brightness / (upper_limit / 15)
 
-    # print 'brightness = ', brightness
-
     return brightness
 
 
@@ -198,7 +193,6 @@ def tell_when_button_pressed(alarm_days, alarm_time, button_status):
 
     hours_left = time_to_alarm / 60
     minutes_left = time_to_alarm % 60
-
 
     if today_nr in alarm_days and time_to_alarm > 0:
         # next alarm is today
@@ -227,19 +221,27 @@ alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual
 # set flag for just played the news
 just_played_alarm = False
 
-# start thread for reading button activity
-d = threading.Thread(target=tell_when_button_pressed, args=(alarm_days, alarm_time, button_pressed,))
-d.start()
-
 # say welcome message
 welcome_message = 'What is my purpose?'
-say(welcome_message)
+d = threading.Thread(target=say, args=(welcome_message,))
+d.start()
 
 # start smart alarm:
 display.scroll(' *WELCOME* ', 1)
 
-# change display brightness
-display.set_brightness(0)
+# set loop counter to one (needed to calculate mean of 10 iterations for the display brightness controll)
+loop_counter = 1
+
+# set brightness_data to zero in order to initialize the variable
+brightness_data = 0
+
+# set the number of iterations to go through for the mean of brightness value
+# 5 looks pretty stable, but does not act to fast on sharp changes. Increase value for more stability,
+# decrease it for faster response time
+number_of_iterations = 5
+
+# set decimal point flag - for decimal point blinking
+point = False
 
 
 try:
@@ -356,9 +358,6 @@ try:
         # display the current time
         display.show_time(now)
 
-        # set display brightness depending on the area brightness reading the photocell
-        display.set_brightness(read_photocell())
-
         # check if alarm is active and set third decimal point
         if alarm_active == '1':
             display.set_decimal(3, True)
@@ -371,19 +370,33 @@ try:
             point = False
             # write content to display
             display.write()
-            time.sleep(0.6)
+            time.sleep(0.5)
         else:
             display.set_decimal(1, point)
             point = True
             # write content to display
             display.write()
-            time.sleep(0.6)
+            time.sleep(0.5)
 
         # delete old and unneeded mp3 files
         delete_old_files(time_to_alarm, alarm_active)
 
         # update xml file in order to find differences in next loop
         xml_data = new_xml_data
+
+        # read area brightness with photocell, save the data to current_brightness and add it the brightness_data
+        # in order to calculate the mean of an set of measurements
+        current_brightness = read_photocell()
+        brightness_data += current_brightness
+
+        print 'loop_counter: %s \t current_brightness: %s \t brightness_data: %s ' % (loop_counter, current_brightness, brightness_data)
+
+        # increase loop counter +1 since loop is about to start again
+        loop_counter += 1
+        if loop_counter > number_of_iterations:
+            display.set_brightness(int(brightness_data) / number_of_iterations)
+            loop_counter = 1
+            brightness_data = 0
 
 
 finally:  # this block will run no matter how the try block exits
