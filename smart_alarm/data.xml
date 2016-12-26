@@ -1,19 +1,23 @@
 <?xml version="1.0" ?><data>
 
-    <alarm_time>04:04</alarm_time>
+    <alarm_time>00:04</alarm_time>
 
     <last_modified>19:59:34</last_modified>
 
-    <content>news</content>
+    <content>podcast</content>
+    
+    <content_podcast_url>podcast test</content_podcast_url>
+    
+    <content_stream_url>stream_url awe</content_stream_url>
 
-    <days>0,1,2,3,4,5,6</days>
+    <days>2,4,6,0</days>
 
     <alarm_active>1</alarm_active>
 
-    <individual_message>0</individual_message>
+    <individual_message>1</individual_message>
 
-    <text>wakeie wakeie little sleepy</text>
+    <text>test test test asdasd</text>
 
-    <volume>83</volume>
+    <volume>53</volume>
 
 </data>

@@ -1,6 +1,14 @@
 import cgi
-import xml_belongings as xml
+import sys
 import os.path
+
+# important for apache web server:
+project_path = '/home/sebastian/Source/smart_alarm/smart_alarm'
+if project_path not in sys.path:
+    sys.path.append(project_path)
+os.chdir(project_path)
+
+import xml_belongings as xml
 
 MIME_TABLE = {'.txt': 'text/plain',
               '.html': 'text/html',
@@ -11,7 +19,7 @@ MIME_TABLE = {'.txt': 'text/plain',
              }
 
 
-def app(environ, start_response):
+def application(environ, start_response):
     # response for POST
     if environ['REQUEST_METHOD'] == 'POST':
         post = cgi.FieldStorage(
@@ -20,12 +28,9 @@ def app(environ, start_response):
            keep_blank_values=False
         )
 
-        # alarm_time_hour = post.getvalue('hour')
-        # alarm_active = post.getvalue('alarm_active')
-        # xml.changeValue('data.xml', 'alarm_active', alarm_active)
         for s in post:
             xml.changeValue('data.xml', s, post.getvalue(s))
-            print s + ' changed to ' +  post.getvalue(s)
+            print s + ' changed to ' + post.getvalue(s)
 
     path = environ['PATH_INFO']
     if path != '/data.xml':
@@ -45,7 +50,7 @@ def app(environ, start_response):
         start_response('200 OK', headers)
         return [content]
     else:
-        return show_404_app(environ, start_response)
+        return show_404_app(environ, start_response, path)
 
 
 def content_type(path):
@@ -60,9 +65,9 @@ def content_type(path):
         return "application/octet-stream"
 
 
-def show_404_app(environ, start_response):
+def show_404_app(environ, start_response, path):
     start_response('404 Not Found', [('content-type','text/html')])
-    return ["""<html><h1>Page not Found</h1><p>
+    return ["""<html><h1>""" + path + """ not Found</h1><p>
                That page is unknown. Return to
                the <a href="/">alarm clock</a>.</p>
                </html>""", ]
@@ -72,7 +77,7 @@ if __name__ == '__main__':
     from wsgiref.simple_server import make_server
     import webbrowser
 
-    httpd = make_server('', 8090, app)
+    httpd = make_server('', 8090, application)
     print('Serving on port 8090...')
 
     url = "http://127.0.0.1:8090"
