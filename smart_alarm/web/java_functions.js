@@ -1,6 +1,6 @@
-$(function($) { 
+$(function() { 
     $(window).load(function() {
-    loadDoc();
+        loadDoc();
     });
 
     //---------------------------------------------------
@@ -20,7 +20,7 @@ $(function($) {
     function readXmlFile(xml) {
         console.log( xml );
         var xmlDoc = xml.responseXML;
-        var x = xmlDoc.getElementsByTagName("data");
+        //var x = xmlDoc.getElementsByTagName("data");
         var content = xmlDoc.getElementsByTagName('content')[0].childNodes[0].nodeValue;
         var content_stream_url = xmlDoc.getElementsByTagName('content_stream_url')[0].childNodes[0].nodeValue;
         var content_podcast_url = xmlDoc.getElementsByTagName('content_podcast_url')[0].childNodes[0].nodeValue;
@@ -40,9 +40,10 @@ $(function($) {
         // set values
         $("#slider").slider("option", "value", volume); 
 
+        $('#hour_knob').val(hour_value).trigger('change');   
+        //$('#hour_knob').change(hour_value);
         $('#minute_knob').val(minute_value).trigger('change');
-        $('#hour_knob').val(hour_value).trigger('change');
-        
+                
         $('#cb_alarm_active').prop("checked", alarm_active);
         $("#cb_alarm_active").change(); // to set the elements of class "hide" visible or not
         
@@ -170,7 +171,7 @@ $(function($) {
     //---------------------------------------------------    
     $(".knob").knob({
         change : function (value) {
-            // console.log("change : " + value);
+             console.log("change : " + value);
             var type = this.$[0].id;
             value = String(Math.round(value));
             if(value.length == 1)
@@ -186,7 +187,6 @@ $(function($) {
             }
         },
         release : function (value) {
-            //var type = $($(this).attr('$')[0]).attr('id');
             var type = this.$[0].id;
             value = String(value);
             
@@ -346,6 +346,5 @@ $(function($) {
     // list box
     //---------------------------------------------------
     $('select#planets').listbox();
-    
 }); 
        

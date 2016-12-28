@@ -3,7 +3,7 @@ import sys
 import os.path
 
 # important for apache web server:
-project_path = '/home/sebastian/Source/smart_alarm/smart_alarm'
+project_path = os.environ['smart_alarm_path']
 if project_path not in sys.path:
     sys.path.append(project_path)
 os.chdir(project_path)
