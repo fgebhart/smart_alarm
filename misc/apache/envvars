@@ -46,5 +46,5 @@ export LANG
 ## installations which interact with Apache
 #export APACHE2_MAINTSCRIPT_DEBUG=1
 
-# Load all the system environment variables.
-. /etc/profile.d/smart_alarm.sh
+# Load smart alarm path variable.
+export smart_alarm_path=/home/pi/smart_alarm/smart_alarm
