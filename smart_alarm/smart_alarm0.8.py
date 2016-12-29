@@ -53,7 +53,7 @@ from sounds import *
 from xml_belongings import *
 from settings import *
 import time
-import os
+import os.path
 
 
 # import dispay_class
@@ -78,6 +78,8 @@ GPIO.output(amp_switch_pin, 0)
 # dlf podcast link to XML file. Correct if modified!
 dlf_news_url = "http://www.deutschlandfunk.de/podcast-nachrichten.1257.de.podcast.xml"
 
+# read environmental variable for project path
+project_path = os.environ['smart_alarm_path']
 
 def download_file(link_to_file):
     """function for downloading files"""
@@ -123,9 +125,9 @@ def delete_old_files(time_to_alarm, alarm_active):
     """checks for old mp3 files and deletes them"""
     # find all mp3 files and append them to a list
     list_of_mp3_files = []
-    for file in os.listdir('/home/pi/smart_alarm/smart_alarm'):
+    for file in os.listdir(project_path):
         if file.startswith('nachrichten'):
-            list_of_mp3_files.append('/home/pi/smart_alarm/smart_alarm/' + str(file))
+            list_of_mp3_files.append(project_path + str(file))
 
     # either if the time_to_alarm is 10 minutes away from going off, or if it is deactivated
     if time_to_alarm < -10 or time_to_alarm > 10 or alarm_active == '0':
@@ -212,11 +214,11 @@ def tell_when_button_pressed(alarm_days, alarm_time, button_status):
 GPIO.add_event_detect(button_input_pin, GPIO.BOTH, callback=button_callback)
 
 # read out the settings in 'data.xml' from the same folder
-xml_data = update_settings('/home/pi/smart_alarm/smart_alarm/data.xml')
+xml_data = update_settings(str(project_path) + '/data.xml')
 
 # assign the xml data to the corresponding variables
 alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume \
-    = update_settings('/home/pi/smart_alarm/smart_alarm/data.xml')
+    = update_settings(str(project_path) + '/data.xml')
 
 # set flag for just played the news
 just_played_alarm = False
@@ -253,7 +255,7 @@ try:
         display.clear_class()
 
         # read xml file and store data to xml_data
-        new_xml_data = update_settings('/home/pi/smart_alarm/smart_alarm/data.xml')
+        new_xml_data = update_settings(project_path + 'data.xml')
 
         # check if xml file was updated. If so, update the variables
         if xml_data != new_xml_data:
@@ -389,7 +391,7 @@ try:
         current_brightness = read_photocell()
         brightness_data += current_brightness
 
-        print 'loop_counter: %s \t current_brightness: %s \t brightness_data: %s ' % (loop_counter, current_brightness, brightness_data)
+        # print 'loop_counter: %s \t current_brightness: %s \t brightness_data: %s ' % (loop_counter, current_brightness, brightness_data)
 
         # increase loop counter +1 since loop is about to start again
         loop_counter += 1
