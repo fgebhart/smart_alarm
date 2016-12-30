@@ -127,7 +127,7 @@ def delete_old_files(time_to_alarm, alarm_active):
     list_of_mp3_files = []
     for file in os.listdir(project_path):
         if file.startswith('nachrichten'):
-            list_of_mp3_files.append(project_path + str(file))
+            list_of_mp3_files.append(project_path + '/' + str(file))
 
     # either if the time_to_alarm is 10 minutes away from going off, or if it is deactivated
     if time_to_alarm < -10 or time_to_alarm > 10 or alarm_active == '0':
@@ -225,8 +225,7 @@ just_played_alarm = False
 
 # say welcome message
 welcome_message = 'What is my purpose?'
-d = threading.Thread(target=say, args=(welcome_message,))
-d.start()
+say(welcome_message)
 
 # start smart alarm:
 display.scroll(' *WELCOME* ', 1)
@@ -255,7 +254,7 @@ try:
         display.clear_class()
 
         # read xml file and store data to xml_data
-        new_xml_data = update_settings(project_path + 'data.xml')
+        new_xml_data = update_settings(project_path + '/data.xml')
 
         # check if xml file was updated. If so, update the variables
         if xml_data != new_xml_data:
