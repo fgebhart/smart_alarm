@@ -24,7 +24,7 @@ def play_mp3_file(mp3_file):
     GPIO.output(amp_switch_pin, 0)
 
 
-play_mp3_file("example.mp3")
+play_mp3_file("/home/pi/smart_alarm/smart_alarm/music/Festival.mp3")
 
 GPIO.cleanup()
 
