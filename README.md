@@ -5,6 +5,26 @@ Welcome to the _open source alarm clock_ project **smart_alarm**!
 
 The smart_alarm project provides an easy to build and program Internet of Things alarm clock. We would love to see you build your own version of it. It is designed, such that you can adapt your needs and improve it easily. Let us know if you want to contribute to this repository or simply want to share your ideas. All kind of support is appreciated. 
 
+### Features
+
+Even though we wanted to leave a lot of space for your ideas and improvements, the smart alarm clock is designed to have the following features:
+
+* text to speech synthesizer
+* three ways of wake-up sound:
+    - play local mp3 files
+    - play internet radio station and
+    - play latest news as podcast (independent to the alarm time)
+* set alarm via smartphone or any other computer
+* running apache2 server
+* automatic display brightness adjustment
+* audio amplifier volume control
+* 3D-printalbe case
+* case built-in tactile switch
+* alphanumeric display shows text
+* 3W speaker definitely wakes you up
+* ... whatever you want to add ...
+
+
 ### General Usage
 
 If you want to build and code your own _smart_alarm_ please visit the [smart_alarm wiki](https://github.com/fgebhart/smart_alarm/wiki) and follow the steps described in the [installation guide](https://github.com/fgebhart/smart_alarm/wiki/Installation-Guide).
