@@ -11,7 +11,8 @@ If you want to build and code your own _smart_alarm_ please visit the [smart_ala
 
 Clone the code of this repository to the home folder of your computer / Raspberry Pi Zero simply by typing:
 
-```cd
+```
+cd
 git clone https://github.com/fgebhart/smart_alarm.git
 ```
 
