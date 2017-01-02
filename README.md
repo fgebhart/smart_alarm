@@ -50,3 +50,11 @@ You might also want to check out our instruction on instructables:
 ---------------------------INSTRUCTABLES LINK-----------------------------
 
 
+### Thanks to
+<a href="https://github.com/aterrien">Anthony Terrien</a> for the <a href="https://github.com/aterrien/jQuery-Knob">jQuery Knob Controls</a>!
+
+<a href="https://github.com/ikalnytskyi">Ihor Kalnytskyi</a> for the <a href="https://github.com/ikalnytskyi/listbox.js">jQuery List Box</a>!
+
+And also to <a href="http://touchpunch.furf.com/">jQuery UI Touch Punch</a> and <a href="https://jqueryui.com/">jQeury UI</a>.
+
+
