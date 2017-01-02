@@ -16,6 +16,9 @@ cd
 git clone https://github.com/fgebhart/smart_alarm.git
 ```
 
+<a href="https://www.youtube.com/watch?v=BQ0yeRbUKlk" target="_blank"><img src="http://img.youtube.com/vi/BQ0yeRbUKlk/0.jpg" 
+alt="IMAGE ALT TEXT HERE" width="240" height="180" border="10" /></a>
+
 If you are looking for the 3D-model for printing the case, please follow this link to thingiverse:
 
 --------------------------THINGIVERSE LINK--------------------------------
