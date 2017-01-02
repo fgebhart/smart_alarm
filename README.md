@@ -17,6 +17,7 @@ git clone https://github.com/fgebhart/smart_alarm.git
 ```
 
 Check out our Video on Youtube:
+
 <a href="https://www.youtube.com/watch?v=BQ0yeRbUKlk" target="_blank"><img src="http://img.youtube.com/vi/BQ0yeRbUKlk/0.jpg" 
 alt="IMAGE ALT TEXT HERE" width="240" height="180" border="10" /></a>
 
