@@ -47,6 +47,15 @@ def update_settings(xml_file):
     return alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume
 
 
+def changeValue(xml_file, element_name, value):
+    xmldoc = minidom.parse(xml_file)
+    xmldoc.getElementsByTagName(element_name)[0].childNodes[0].data = value
+    with open(xml_file, "wb") as f:
+        xmldoc.writexml(f)
+
+
+
+"""
 def read(xml_file, settings):
     xmldoc = minidom.parse(xml_file)
 
@@ -57,13 +66,6 @@ def read(xml_file, settings):
     settings.individual_message = xmldoc.getElementsByTagName('individual_message')[0].childNodes[0].data
     settings.text = xmldoc.getElementsByTagName('text')[0].childNodes[0].data
     settings.volume = xmldoc.getElementsByTagName('volume')[0].childNodes[0].data
-
-
-def changeValue(xml_file, element_name, value):
-    xmldoc = minidom.parse(xml_file)
-    xmldoc.getElementsByTagName(element_name)[0].childNodes[0].data = value
-    with open(xml_file, "wb") as f:
-        xmldoc.writexml(f)
 
 
 def write(currentTime, settings):
@@ -97,3 +99,4 @@ def write(currentTime, settings):
     daysNode.appendChild(doc.createTextNode(settings.volume))
 
     return doc
+"""

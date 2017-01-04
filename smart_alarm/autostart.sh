@@ -8,4 +8,4 @@ gpio_alt -p 13 -f 0
 gpio_alt -p 18 -f 5
 
 # run smart_alarm main script
-sudo python $smart_alarm_path/smart_alarm0.8.py &
+sudo python $smart_alarm_path/smart_alarm0.9.py &

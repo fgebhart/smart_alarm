@@ -38,7 +38,8 @@ Todo:
 
 
 Possible internet radio station (working witch MPC):
-- http://streaming.radionomy.com/The-Smooth-Lounge?lang=en-US%2cen%3bq%3d0.8%2cde%3bq%3d0.6
+- http://streaming.radionomy.com/The-Smooth-Lounge?lang=en-US%2cen%3bq%3d0.8%2cde%3bq%3d0.6     (has commeercials)
+- http://orange-01.live.sil.at:8000                                                             ( )
 -
 
 """
@@ -49,15 +50,21 @@ import RPi.GPIO as GPIO
 import threading
 # from read_xml import read_xml_file_list, read_xml_file_namedtuple
 from display_class import Display
-from sounds import *
+from sounds import Sound
 from xml_belongings import *
 from settings import *
 import time
-import os.path
+import os
+import pygame
+import pyttsx
+from random import randint
 
 
 # import dispay_class
 display = Display()
+
+# import sound class
+sound = Sound()
 
 # set button input pin
 button_input_pin = 24
@@ -74,12 +81,23 @@ GPIO.setup(amp_switch_pin, GPIO.OUT)
 # set output low in order to turn off amplifier and nullify noise
 GPIO.output(amp_switch_pin, 0)
 
-
 # dlf podcast link to XML file. Correct if modified!
 dlf_news_url = "http://www.deutschlandfunk.de/podcast-nachrichten.1257.de.podcast.xml"
 
 # read environmental variable for project path
 project_path = os.environ['smart_alarm_path']
+
+
+def button_callback(channel):
+    """define a threaded callback function to run in another thread when events are detected"""
+
+    if GPIO.input(button_input_pin):  # if port 24 == 1
+        print "button pressed"
+        sound.stop_sound = True
+        if now_playing_mp3 is False and now_playing_stream is False:
+            tell_when_button_pressed(alarm_days, alarm_time)
+        #time.sleep(0.2)
+
 
 def download_file(link_to_file):
     """function for downloading files"""
@@ -125,9 +143,9 @@ def delete_old_files(time_to_alarm, alarm_active):
     """checks for old mp3 files and deletes them"""
     # find all mp3 files and append them to a list
     list_of_mp3_files = []
-    for file in os.listdir(project_path):
+    for file in os.listdir('/home/pi/smart_alarm/smart_alarm'):
         if file.startswith('nachrichten'):
-            list_of_mp3_files.append(project_path + '/' + str(file))
+            list_of_mp3_files.append('/home/pi/smart_alarm/smart_alarm/' + str(file))
 
     # either if the time_to_alarm is 10 minutes away from going off, or if it is deactivated
     if time_to_alarm < -10 or time_to_alarm > 10 or alarm_active == '0':
@@ -184,30 +202,34 @@ def read_photocell():
     return brightness
 
 
-def tell_when_button_pressed(alarm_days, alarm_time, button_status):
-    """when button is pressed and alarm is not acitve
+def tell_when_button_pressed(alarm_days, alarm_time):
+    """when button is pressed and alarm is not active
     tell the user some information, defined here"""
 
-    today_nr = time.strftime('%w')
+    print alarm_days, alarm_time
+
+    today_as_number = time.strftime('%w')
 
     now = time.strftime("%H%M")
+
+    print 'now: ', now
+
     time_to_alarm = (int(alarm_time[:2]) * 60 + int(alarm_time[3:])) - (int(now[:2]) * 60 + int(now[2:]))
+
+    print time_to_alarm
 
     hours_left = time_to_alarm / 60
     minutes_left = time_to_alarm % 60
 
-    if today_nr in alarm_days and time_to_alarm > 0:
+    # HERE NEED SOME LOGIC TO FIGURE OUT WHAT TO SAY AND HOW TO SAY IT PROPERLY
+
+    #if today_as_number in alarm_days and time_to_alarm > 0:
         # next alarm is today
-        day = 'today'
-        info_message = 'The next alarm will go off %s at %s. Which is %s hours and %s minutes'\
-                       % (day, alarm_time, hours_left, minutes_left)
-    """
-    while just_played_alarm == False:
-        # check if button is being pressed
-        if button_callback() == True:
-            print 'button is pressed without alarm'
-            say(info_message)
-    """
+
+    day = 'today'
+    info_message = 'insert message here'
+
+    sound.say(info_message)
 
 
 # start the the button interrupt thread
@@ -225,12 +247,13 @@ just_played_alarm = False
 
 # say welcome message
 welcome_message = 'What is my purpose?'
-say(welcome_message)
+d = threading.Thread(target=sound.say, args=(welcome_message,))
+d.start()
 
 # start smart alarm:
 display.scroll(' *WELCOME* ', 1)
 
-# set loop counter to one (needed to calculate mean of 10 iterations for the display brightness controll)
+# set loop counter to one (needed to calculate mean of 10 iterations for the display brightness control)
 loop_counter = 1
 
 # set brightness_data to zero in order to initialize the variable
@@ -244,6 +267,10 @@ number_of_iterations = 5
 # set decimal point flag - for decimal point blinking
 point = False
 
+# initialize the two sound-check-if-active variables
+now_playing_mp3 = False
+now_playing_stream = False
+
 
 try:
     while True:
@@ -254,15 +281,15 @@ try:
         display.clear_class()
 
         # read xml file and store data to xml_data
-        new_xml_data = update_settings(project_path + '/data.xml')
+        new_xml_data = update_settings(str(project_path) + '/data.xml')
 
         # check if xml file was updated. If so, update the variables
         if xml_data != new_xml_data:
             print 'file changed - update settings'
             # set the updated variables
-            alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume = update_settings('data.xml')
+            alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume = update_settings(str(project_path) + '/data.xml')
 
-            adjust_volume(volume)
+            sound.adjust_volume(volume)
 
         time_to_alarm = int(int(str(alarm_time[:2]) + str(alarm_time[3:]))) - int(now)
 
@@ -288,7 +315,7 @@ try:
                         individual_message = set_ind_msg(individual_msg_active, individual_message)
 
                         # wake up with individual message
-                        z = threading.Thread(target=say, args=(individual_message,))
+                        z = threading.Thread(target=sound.say, args=(individual_message,))
                         z.start()
 
                         # download dlf_xml_file according to the dlf_news_url
@@ -305,7 +332,7 @@ try:
                             time.sleep(0.5)
 
                         # play the most recent news_mp3_file
-                        a = threading.Thread(target=play_mp3_file, args=(news_mp3_file,))
+                        a = threading.Thread(target=sound.play_mp3_file, args=(news_mp3_file,))
                         a.start()
 
                         # set flag for just played alarm
@@ -324,9 +351,9 @@ try:
                         individual_message = set_ind_msg(individual_msg_active, individual_message)
 
                         # wake up with individual message
-                        say(individual_message)
+                        sound.say(individual_message)
 
-                        b = threading.Thread(target=play_wakeup_music, args=())
+                        b = threading.Thread(target=sound.play_wakeup_music, args=())
                         b.start()
 
                         # set flag for just played alarm
@@ -344,9 +371,9 @@ try:
                         individual_message = set_ind_msg(individual_msg_active, individual_message)
 
                         # wake up with individual message
-                        say(individual_message)
+                        sound.say(individual_message)
 
-                        c = threading.Thread(target=play_online_stream, args=())
+                        c = threading.Thread(target=sound.play_online_stream, args=())
                         c.start()
 
                         # set flag for just played alarm
@@ -401,6 +428,6 @@ try:
 
 
 finally:  # this block will run no matter how the try block exits
-    say('Goodbye')
+    sound.say('Goodbye')
     GPIO.output(amp_switch_pin, 0)  # switch amp off
     print '\nbye!'
