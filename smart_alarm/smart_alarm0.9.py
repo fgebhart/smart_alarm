@@ -27,20 +27,15 @@ Features of this python script so far:
 - enabled internet radio / music streaming as possible wake-up sound
 - button interrupt instead of waiting
 - turn off and on amplifier in order to suppress background noise
--
+- checks provided podcast + stream url if they are ok, if not play default url
+- possibility to press button without any alarm going: informs you about the next alarm
+- ...
 
-Todo:
-- find internet radio station without commercials and too much talk
-- enable function to run when button is pressed without alarm running
-    * for example 'say time left till alarm'
-- Fix Error: 'socket.error: [Errno 98] Address already in use' in python_server.py
+mpc stations:
 
+OrangeFM                http://orange-01.live.sil.at:8000
+SmoothLounge with Ads:  http://streaming.radionomy.com/The-Smooth-Lounge?lang=en-US%2cen%3bq%3d0.8%2cde%3bq%3d0.6
 
-
-Possible internet radio station (working witch MPC):
-- http://streaming.radionomy.com/The-Smooth-Lounge?lang=en-US%2cen%3bq%3d0.8%2cde%3bq%3d0.6     (has commeercials)
-- http://orange-01.live.sil.at:8000                                                             ( )
--
 
 """
 
@@ -55,9 +50,6 @@ from xml_belongings import *
 from settings import *
 import time
 import os
-import pygame
-import pyttsx
-from random import randint
 
 
 # import dispay_class
@@ -81,8 +73,10 @@ GPIO.setup(amp_switch_pin, GPIO.OUT)
 # set output low in order to turn off amplifier and nullify noise
 GPIO.output(amp_switch_pin, 0)
 
-# dlf podcast link to XML file. Correct if modified!
-dlf_news_url = "http://www.deutschlandfunk.de/podcast-nachrichten.1257.de.podcast.xml"
+# start smart alarm:
+scroll_message = ' *WELCOME* '
+x = threading.Thread(target=display.scroll, args=(scroll_message, 1,))
+x.start()
 
 # read environmental variable for project path
 project_path = os.environ['smart_alarm_path']
@@ -94,9 +88,8 @@ def button_callback(channel):
     if GPIO.input(button_input_pin):  # if port 24 == 1
         print "button pressed"
         sound.stop_sound = True
-        if now_playing_mp3 is False and now_playing_stream is False:
-            tell_when_button_pressed(alarm_days, alarm_time)
-        #time.sleep(0.2)
+        if sound.sound_active == False:
+            tell_when_button_pressed(alarm_active, alarm_days, alarm_time)
 
 
 def download_file(link_to_file):
@@ -202,35 +195,154 @@ def read_photocell():
     return brightness
 
 
-def tell_when_button_pressed(alarm_days, alarm_time):
+def tell_when_button_pressed(alarm_active, alarm_days, alarm_time):
     """when button is pressed and alarm is not active
-    tell the user some information, defined here"""
+    tell the user some information about the upcoming alarms"""
+    next_alarm_day_found = None
+    info_message = 'shit. didnt work'
 
-    print alarm_days, alarm_time
+    # figure out the weekdays:
+    weekdays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
 
+    # fetch date and time information and convert it to the needed format
     today_as_number = time.strftime('%w')
-
     now = time.strftime("%H%M")
-
-    print 'now: ', now
-
     time_to_alarm = (int(alarm_time[:2]) * 60 + int(alarm_time[3:])) - (int(now[:2]) * 60 + int(now[2:]))
 
-    print time_to_alarm
+    # check if alarm is active, then distinguish the four possibilities
+    if alarm_active == '1':
+        # P1: alarm today + tta > 0
+        if str(today_as_number) in alarm_days and time_to_alarm > 0:
+            hours_left = time_to_alarm / 60
+            minutes_left = time_to_alarm % 60
+            info_message = 'The next alarm is today, at %s, which is in %s hours and %s minutes.' % (str(alarm_time), str(hours_left), str(minutes_left))
+            if hours_left == 0:
+                info_message = 'The next alarm is today, at %s, which is in %s minutes.' % (str(alarm_time), str(minutes_left))
 
-    hours_left = time_to_alarm / 60
-    minutes_left = time_to_alarm % 60
+        # P2: tta < 0
+        elif time_to_alarm <= 0 or str(today_as_number) not in alarm_days:
 
-    # HERE NEED SOME LOGIC TO FIGURE OUT WHAT TO SAY AND HOW TO SAY IT PROPERLY
+            days_to_alarm = 0
+            next_alarm_day = int(today_as_number)
+            # start loop to findout the up next day which is set to alarm
+            while next_alarm_day_found is None:
+                days_to_alarm += 1
+                next_alarm_day += 1
+                if next_alarm_day > 6:
+                    next_alarm_day = 0
+                if str(next_alarm_day) in alarm_days:
+                    next_alarm_day_found = True
 
-    #if today_as_number in alarm_days and time_to_alarm > 0:
-        # next alarm is today
-
-    day = 'today'
-    info_message = 'insert message here'
+            # P3: tta < 0 + not today
+            if time_to_alarm <= 0:
+                time_left_in_minutes = 1440 + int(time_to_alarm)
+                hours_left = time_left_in_minutes / 60
+                minutes_left = time_left_in_minutes % 60
+                days_to_alarm -= 1
+                next_alarm_day = weekdays[next_alarm_day]
+                info_message = 'The next alarm is on %s at %s, which is in %s days, %s hours and %s minutes.'\
+                               % (str(next_alarm_day), str(alarm_time), str(days_to_alarm), str(hours_left), str(minutes_left))
+                if days_to_alarm == 0:
+                    info_message = 'The next alarm is tomorrow at %s, which is in %s hours and %s minutes.' \
+                                   % (str(alarm_time), str(hours_left), str(minutes_left))
+            # P4: tta > 0 + not today
+            elif time_to_alarm > 0:
+                hours_left = time_to_alarm / 60
+                minutes_left = time_to_alarm % 60
+                next_alarm_day = weekdays[next_alarm_day]
+                info_message = 'The next alarm is on %s at %s, which is in %s days, %s hours and %s minutes.' \
+                               % (str(next_alarm_day), str(alarm_time), str(days_to_alarm), str(hours_left), str(minutes_left))
+                if days_to_alarm == 1:
+                    info_message = 'The next alarm is tomorrow at %s, which is in one day %s hours and %s minutes.' \
+                                   % (str(alarm_time), str(hours_left), str(minutes_left))
+    elif alarm_active == '0':
+        info_message = 'No alarm set.'
 
     sound.say(info_message)
 
+
+def test_alarm():
+    """test alarm function is executed when 'Test Alarm' button on gui is pressed"""
+    # fetch current settings from data.xml
+    settings = read_xml_file_namedtuple(str(project_path) + '/data.xml')
+    # only content and individual message are relevant
+    content = settings.content
+    individual_msg_active = settings.individual_message
+    individual_message = settings.text
+
+    # start alarm based on settings:
+    if content == 'podcast':
+        # set the updated individual wake-up message in order to play it
+        individual_message = set_ind_msg(individual_msg_active, individual_message)
+
+        # wake up with individual message
+        z = threading.Thread(target=sound.say, args=(individual_message,))
+        z.start()
+
+        # download podcast_xml_file according to the podcast_url
+        podcast_xml_file = download_file(podcast_url)
+
+        # now parse the podcast_xml_file in order to find the most_recent_news_url
+        most_recent_news_url = find_most_recent_news_url_in_xml_file(podcast_xml_file)
+
+        # download the most recent news_mp3_file according to the most_recent_news_url
+        news_mp3_file = download_file(most_recent_news_url)
+
+        # wait untill thread z (say) is done
+        while z.isAlive() == True:
+            time.sleep(0.5)
+
+        # play the most recent news_mp3_file
+        a = threading.Thread(target=sound.play_mp3_file, args=(news_mp3_file,))
+        a.start()
+    elif content == 'mp3':
+        # set the updated individual wake-up message in order to play it
+        individual_message = set_ind_msg(individual_msg_active, individual_message)
+
+        # wake up with individual message
+        sound.say(individual_message)
+
+        b = threading.Thread(target=sound.play_wakeup_music, args=())
+        b.start()
+    elif content == 'stream':
+        # set the updated individual wake-up message in order to play it
+        individual_message = set_ind_msg(individual_msg_active, individual_message)
+
+        # wake up with individual message
+        sound.say(individual_message)
+
+        c = threading.Thread(target=sound.play_online_stream, args=())
+        c.start()
+
+
+def check_if_podcast_url_correct(url):
+    """check if the provided url is okay, if not, inform master and use default podcast url"""
+    # manage default podcast url
+    default_podcast_url = "http://www.bbc.co.uk/programmes/p02nq0gn/episodes/downloads.rss"
+    # BBC News: http://www.bbc.co.uk/programmes/p02nq0gn/episodes/downloads.rss
+    # DLF News: http://www.deutschlandfunk.de/podcast-nachrichten.1257.de.podcast.xml
+    most_recent_news_url = 'no_mp3_file'
+
+    if url.startswith(('http://', 'https://', 'www.')):
+        pass
+    else:
+        sound.say('provided podcast url does not look like a proper url. Playing default podcast instead!')
+        return default_podcast_url
+
+    try:
+        podcast_xml_file = download_file(podcast_url)
+        most_recent_news_url = find_most_recent_news_url_in_xml_file(podcast_xml_file)
+    finally:
+        if most_recent_news_url.endswith('.mp3'):
+            return url
+        else:
+            sound.say('Cant find any m p 3 file in the provided podcast url. Playing default podcast instead!')
+            return default_podcast_url
+
+
+# say welcome message
+welcome_message = 'What is my purpose?'
+sound.say(welcome_message)
 
 # start the the button interrupt thread
 GPIO.add_event_detect(button_input_pin, GPIO.BOTH, callback=button_callback)
@@ -239,19 +351,11 @@ GPIO.add_event_detect(button_input_pin, GPIO.BOTH, callback=button_callback)
 xml_data = update_settings(str(project_path) + '/data.xml')
 
 # assign the xml data to the corresponding variables
-alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume \
-    = update_settings(str(project_path) + '/data.xml')
+alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume,\
+podcast_url, stream_url = update_settings(str(project_path) + '/data.xml')
 
 # set flag for just played the news
 just_played_alarm = False
-
-# say welcome message
-welcome_message = 'What is my purpose?'
-d = threading.Thread(target=sound.say, args=(welcome_message,))
-d.start()
-
-# start smart alarm:
-display.scroll(' *WELCOME* ', 1)
 
 # set loop counter to one (needed to calculate mean of 10 iterations for the display brightness control)
 loop_counter = 1
@@ -266,10 +370,6 @@ number_of_iterations = 5
 
 # set decimal point flag - for decimal point blinking
 point = False
-
-# initialize the two sound-check-if-active variables
-now_playing_mp3 = False
-now_playing_stream = False
 
 
 try:
@@ -287,7 +387,7 @@ try:
         if xml_data != new_xml_data:
             print 'file changed - update settings'
             # set the updated variables
-            alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume = update_settings(str(project_path) + '/data.xml')
+            alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume, podcast_url, stream_url = update_settings(str(project_path) + '/data.xml')
 
             sound.adjust_volume(volume)
 
@@ -318,11 +418,14 @@ try:
                         z = threading.Thread(target=sound.say, args=(individual_message,))
                         z.start()
 
-                        # download dlf_xml_file according to the dlf_news_url
-                        dlf_xml_file = download_file(dlf_news_url)
+                        # check if the provided podcast url is working. If not function chooses deafult url
+                        podcast_url = check_if_podcast_url_correct(podcast_url)
 
-                        # now parse the dlf_xml_file in order to find the most_recent_news_url
-                        most_recent_news_url = find_most_recent_news_url_in_xml_file(dlf_xml_file)
+                        # download podcast_xml_file according to the podcast_url
+                        podcast_xml_file = download_file(podcast_url)
+
+                        # now parse the podcast_xml_file in order to find the most_recent_news_url
+                        most_recent_news_url = find_most_recent_news_url_in_xml_file(podcast_xml_file)
 
                         # download the most recent news_mp3_file according to the most_recent_news_url
                         news_mp3_file = download_file(most_recent_news_url)

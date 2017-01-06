@@ -3,7 +3,7 @@ from collections import namedtuple
 
 
 def read_xml_file_namedtuple(xml_file):
-    settings = namedtuple("settings", "alarm_active time content days individual_message text volume")
+    settings = namedtuple("settings", "alarm_active time content days individual_message text volume content_podcast_url content_stream_url")
 
     xmldoc = minidom.parse(xml_file)
 
@@ -14,6 +14,8 @@ def read_xml_file_namedtuple(xml_file):
     settings.individual_message = xmldoc.getElementsByTagName('individual_message')[0].childNodes[0].data
     settings.text = xmldoc.getElementsByTagName('text')[0].childNodes[0].data
     settings.volume = xmldoc.getElementsByTagName('volume')[0].childNodes[0].data
+    settings.content_podcast_url = xmldoc.getElementsByTagName('content_podcast_url')[0].childNodes[0].data
+    settings.content_stream_url = xmldoc.getElementsByTagName('content_stream_url')[0].childNodes[0].data
 
     return settings
 
@@ -43,8 +45,11 @@ def update_settings(xml_file):
     individual_msg_active = settings.individual_message
     individual_message = settings.text
     volume = settings.volume
+    content_podcast_url = settings.content_podcast_url
+    content_stream_url = settings.content_stream_url
 
-    return alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume
+    return alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume,\
+           content_podcast_url, content_stream_url
 
 
 def changeValue(xml_file, element_name, value):

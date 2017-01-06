@@ -74,7 +74,7 @@ class Sound(object):
         GPIO.output(amp_switch_pin, 1)
         time.sleep(0.3)
         engine = pyttsx.init()
-        engine.setProperty('rate', 115)
+        engine.setProperty('rate', 125)
         # remove "pass" and uncomment next line in order to enable this function
         engine.say(text)
         engine.runAndWait()
