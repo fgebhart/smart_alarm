@@ -18,8 +18,6 @@ GPIO.setmode(GPIO.BCM)
 # set pin to output
 GPIO.setup(amp_switch_pin, GPIO.OUT)
 
-button_pressed = False
-
 
 class Sound(object):
     """sound class manages smart alarm audio"""
@@ -30,7 +28,7 @@ class Sound(object):
         self.stop_sound = False
 
 
-    def stop_sound(self):
+    def stopping_sound(self):
         """stops alarm when button is pressed"""
         self.stop_sound = True
 

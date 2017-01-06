@@ -83,13 +83,22 @@ project_path = os.environ['smart_alarm_path']
 
 
 def button_callback(channel):
-    """define a threaded callback function to run in another thread when events are detected"""
+    """define a threaded callback function to run when events are detected"""
+    start_timer = time.time()
+    timer = 0
 
-    if GPIO.input(button_input_pin):  # if port 24 == 1
-        print "button pressed"
-        sound.stop_sound = True
-        if sound.sound_active == False:
+    if GPIO.input(button_input_pin) and sound.sound_active is False:  # if port 24 == 1
+        while GPIO.input(button_input_pin) and timer < 3:
+            loop_timer = time.time()
+            timer = loop_timer - start_timer
+            time.sleep(0.1)
+
+        if timer < 3:
             tell_when_button_pressed(alarm_active, alarm_days, alarm_time)
+        if timer >= 3:
+            shutdown_pi()
+
+    sound.stopping_sound()
 
 
 def download_file(link_to_file):
@@ -198,6 +207,7 @@ def read_photocell():
 def tell_when_button_pressed(alarm_active, alarm_days, alarm_time):
     """when button is pressed and alarm is not active
     tell the user some information about the upcoming alarms"""
+
     next_alarm_day_found = None
     info_message = 'shit. didnt work'
 
@@ -338,6 +348,45 @@ def check_if_podcast_url_correct(url):
         else:
             sound.say('Cant find any m p 3 file in the provided podcast url. Playing default podcast instead!')
             return default_podcast_url
+
+
+def shutdown_pi():
+    """function is executed when button is pressed and hold for 5 seconds
+    asks the user to shut down and does so by pressing the button again"""
+    o = threading.Thread(target=sound.say, args=('Wanna shut me down?',))
+    o.start()
+    start_timer = time.time()
+    timer = 0
+    shutdown = False
+
+    while GPIO.input(button_input_pin) == 1:
+        time.sleep(0.1)
+
+    if GPIO.input(button_input_pin) == 0:
+
+        while timer < 5:
+            #print 'shut down timer: ', timer
+            loop_timer = time.time()
+            timer = loop_timer - start_timer
+            if GPIO.input(button_input_pin):
+                shutdown = True
+                break
+            time.sleep(0.1)
+
+        if shutdown:
+            sound.say('See you next time! Bye!')
+            display.clear_class()
+            print '... now shutting down ...'
+            os.system('sudo poweroff')
+
+
+def if_interrupt():
+    """stuff to do when script crashed because of interrupt or whatever"""
+    z = threading.Thread(target=display.scroll, args=(' ', 1,))
+    z.start()
+    sound.say('Outsch!')
+    GPIO.output(amp_switch_pin, 0)  # switch amp off
+    print '\n... crashed ... bye!'
 
 
 # say welcome message
@@ -531,6 +580,6 @@ try:
 
 
 finally:  # this block will run no matter how the try block exits
-    sound.say('Goodbye')
-    GPIO.output(amp_switch_pin, 0)  # switch amp off
-    print '\nbye!'
+    if_interrupt()
+
+
