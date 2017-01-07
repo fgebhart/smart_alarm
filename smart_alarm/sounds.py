@@ -18,6 +18,9 @@ GPIO.setmode(GPIO.BCM)
 # set pin to output
 GPIO.setup(amp_switch_pin, GPIO.OUT)
 
+# read environmental variable for project path
+project_path = os.environ['smart_alarm_path']
+
 
 class Sound(object):
     """sound class manages smart alarm audio"""
@@ -76,7 +79,7 @@ class Sound(object):
         # remove "pass" and uncomment next line in order to enable this function
         engine.say(text)
         engine.runAndWait()
-        time.sleep(0.5)
+        time.sleep(0.2)
         # set ouput low in order to turn off amplifier
         GPIO.output(amp_switch_pin, 0)
         self.sound_active = False
@@ -86,16 +89,16 @@ class Sound(object):
         """adjusts the audio volume by the given value (0-100%)"""
         volume_command = str('amixer set PCM -- ' + str(value) + '%')
         os.system(volume_command)
-        self.play_mp3_file('/home/pi/smart_alarm/smart_alarm/sounds/blop.mp3')
+        self.play_mp3_file(project_path + '/sounds/blop.mp3')
 
 
     def play_wakeup_music(self):
         """find all mp3 files in the folder /home/pi/music
         and play one of them at random"""
         list_of_music_files = []
-        for file in os.listdir("/home/pi/smart_alarm/smart_alarm/music"):
+        for file in os.listdir(project_path + '/music'):
             if file.endswith(".mp3"):
-                list_of_music_files.append(str("/home/pi/smart_alarm/smart_alarm/music/" + str(file)))
+                list_of_music_files.append(str(project_path + '/music/' + str(file)))
 
         # figure out random track of the found mp3 files
         random_track = randint(0, len(list_of_music_files)-1)

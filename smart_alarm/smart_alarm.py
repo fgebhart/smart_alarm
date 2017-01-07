@@ -43,11 +43,9 @@ SmoothLounge with Ads:  http://streaming.radionomy.com/The-Smooth-Lounge?lang=en
 import urllib2
 import RPi.GPIO as GPIO
 import threading
-# from read_xml import read_xml_file_list, read_xml_file_namedtuple
 from display_class import Display
 from sounds import Sound
 from xml_belongings import *
-from settings import *
 import time
 import os
 
@@ -76,7 +74,11 @@ GPIO.output(amp_switch_pin, 0)
 # start smart alarm:
 scroll_message = ' *WELCOME* '
 x = threading.Thread(target=display.scroll, args=(scroll_message, 1,))
-x.start()
+#x.start()
+
+# alternative starting display
+y = threading.Thread(target=display.big_stars, args=(7,))
+y.start()
 
 # read environmental variable for project path
 project_path = os.environ['smart_alarm_path']
@@ -145,9 +147,15 @@ def delete_old_files(time_to_alarm, alarm_active):
     """checks for old mp3 files and deletes them"""
     # find all mp3 files and append them to a list
     list_of_mp3_files = []
-    for file in os.listdir('/home/pi/smart_alarm/smart_alarm'):
-        if file.startswith('nachrichten'):
-            list_of_mp3_files.append('/home/pi/smart_alarm/smart_alarm/' + str(file))
+    # check the projects directory
+    for file in os.listdir(project_path):
+        if file.endswith('.mp3'):
+            list_of_mp3_files.append(project_path + '/' + str(file))
+
+    # as well check the home folder
+    for file in os.listdir('/home/pi'):
+        if file.endswith('.mp3'):
+            list_of_mp3_files.append('/home/pi/' + str(file))
 
     # either if the time_to_alarm is 10 minutes away from going off, or if it is deactivated
     if time_to_alarm < -10 or time_to_alarm > 10 or alarm_active == '0':
@@ -374,17 +382,18 @@ def shutdown_pi():
             time.sleep(0.1)
 
         if shutdown:
-            sound.say('See you next time! Bye!')
-            display.clear_class()
+            q = threading.Thread(target=display.shutdown, args=(5,))
+            q.start()
+            sound.say('O K. Bye!')
             print '... now shutting down ...'
             os.system('sudo poweroff')
 
 
 def if_interrupt():
     """stuff to do when script crashed because of interrupt or whatever"""
-    z = threading.Thread(target=display.scroll, args=(' ', 1,))
-    z.start()
-    sound.say('Outsch!')
+    k = threading.Thread(target=sound.say, args=('Outsch!',))
+    k.start()
+    display.snake(1)
     GPIO.output(amp_switch_pin, 0)  # switch amp off
     print '\n... crashed ... bye!'
 
@@ -401,7 +410,7 @@ xml_data = update_settings(str(project_path) + '/data.xml')
 
 # assign the xml data to the corresponding variables
 alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume,\
-podcast_url, stream_url = update_settings(str(project_path) + '/data.xml')
+    podcast_url, stream_url = update_settings(str(project_path) + '/data.xml')
 
 # set flag for just played the news
 just_played_alarm = False
@@ -413,7 +422,7 @@ loop_counter = 1
 brightness_data = 0
 
 # set the number of iterations to go through for the mean of brightness value
-# 5 looks pretty stable, but does not act to fast on sharp changes. Increase value for more stability,
+# 5 looks pretty stable, but does not act too fast on sharp changes. Increase value for more stability,
 # decrease it for faster response time
 number_of_iterations = 5
 
@@ -436,7 +445,8 @@ try:
         if xml_data != new_xml_data:
             print 'file changed - update settings'
             # set the updated variables
-            alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume, podcast_url, stream_url = update_settings(str(project_path) + '/data.xml')
+            alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume,\
+                podcast_url, stream_url = update_settings(str(project_path) + '/data.xml')
 
             sound.adjust_volume(volume)
 
