@@ -3,6 +3,7 @@ $(function() {
         loadDoc();
     });
 
+    
     //---------------------------------------------------
     // Read XML File
     //---------------------------------------------------
@@ -68,8 +69,9 @@ $(function() {
         
     };
     
+    
     //---------------------------------------------------
-    // Clock
+    // Clock and Date
     //---------------------------------------------------
     // Create two variable with the names of the months and days in an array
     var monthNames = [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ]; 
@@ -103,11 +105,11 @@ $(function() {
         $("#time_hours").html(( hours < 10 ? "0" : "" ) + hours);
         }, 1000);
         
+    
     //---------------------------------------------------
     // Checkboxes
     //---------------------------------------------------
     $( "input[type='checkbox']" ).checkboxradio(); //use jquery ui
-    $( "input[type='button']" ).button(); //use jquery ui
     
     $('#cb_alarm_active').change(function() {
         var value;
@@ -313,6 +315,7 @@ $(function() {
         }
     });
     
+    
     //---------------------------------------------------
     // text fields
     //---------------------------------------------------
@@ -342,9 +345,23 @@ $(function() {
         }
     });
     
+    
     //---------------------------------------------------
     // list box
     //---------------------------------------------------
-    $('select#planets').listbox();
+    $('select#planets').listbox(); //use listbox class
+    
+    
+    //---------------------------------------------------
+    // buttons
+    //---------------------------------------------------
+    $( "input[type='button']" ).button(); //use jquery ui
+    $('#btn_test_alarm').click(function() {
+        $.post("index.html",
+                {
+                  exec_py_script2: 'test_alarm',
+                });
+    })
+    
 }); 
        

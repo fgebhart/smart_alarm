@@ -9,6 +9,7 @@ if project_path not in sys.path:
 os.chdir(project_path)
 
 import xml_belongings as xml
+#import smart_alarm0.9 as smart_alarm
 
 MIME_TABLE = {'.txt': 'text/plain',
               '.html': 'text/html',
@@ -29,8 +30,15 @@ def application(environ, start_response):
         )
 
         for s in post:
-            xml.changeValue('data.xml', s, post.getvalue(s))
-            print s + ' changed to ' + post.getvalue(s)
+            if s == 'exec_py_script':
+                # smart_alarm.test_alarm()
+                print "Test started"
+            else:
+                try:
+                    xml.changeValue('data.xml', s, post.getvalue(s))
+                    print s + ' changed to ' + post.getvalue(s)
+                except:
+                    print 'Error: Couldn\'t change xml entry ' + s + ' to ' + post.getvalue(s)
 
     path = environ['PATH_INFO']
     if path != '/data.xml':
