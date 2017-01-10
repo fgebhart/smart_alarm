@@ -42,12 +42,13 @@ Check out our Video on Youtube:
 alt="IMAGE ALT TEXT HERE" width="240" height="180" border="10" /></a>
 
 If you are looking for the 3D-model for printing the case, please follow this link to thingiverse:
-
 http://www.thingiverse.com/thing:2009740
 
 You might also want to check out our instruction on instructables:
-
 http://www.instructables.com/id/IoT-Smart-Alarm-Clock-Open-Source-Project/
+
+and the project page von hackaday:
+https://hackaday.io/project/19230-iot-smart-alarm-clock
 
 
 ### Thanks to
