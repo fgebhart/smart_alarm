@@ -2,6 +2,8 @@
 
     <alarm_time>00:04</alarm_time>
 
+    <test_alarm>0</test_alarm>
+
     <last_modified>19:59:34</last_modified>
 
     <content>podcast</content>
