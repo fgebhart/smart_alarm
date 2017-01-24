@@ -269,11 +269,12 @@ $(function() {
         change: function (event, ui )
         {
             //save new value
-            console.log("volume value : " + ui.value);
+            var norm_val = 50 + ui.value/2;
+            console.log("volume value : " + norm_val);
             $("#volume_text").text(ui.value);
             $.post("index.html",
                 {
-                  volume: ui.value,
+                  volume: norm_val,
                 });
         },
         
