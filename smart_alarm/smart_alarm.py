@@ -409,7 +409,7 @@ if __name__ == '__main__':
 
     # delete old log file
     try:
-        os.system('rm ' + str(project_path) + '/error.log')
+        os.system('sudo rm ' + str(project_path) + '/error.log')
     finally:
         pass
 
@@ -494,9 +494,14 @@ if __name__ == '__main__':
                 write_to_log('-> data.xml file changed - now update settings')
                 # set the updated variables
                 alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume,\
-                    podcast_url, stream_url = update_settings(str(project_path) + '/data.xml')
+                    podcast_url, stream_url, test_alarm = update_settings(str(project_path) + '/data.xml')
 
                 sound.adjust_volume(volume)
+
+            # check if test alarm was pressed
+            if test_alarm == '1':
+                changeValue('data.xml', 'test_alarm', '0')
+                test_alarm()
 
             time_to_alarm = int(int(str(alarm_time[:2]) + str(alarm_time[3:]))) - int(now)
 
