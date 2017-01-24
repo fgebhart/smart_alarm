@@ -279,7 +279,7 @@ def tell_when_button_pressed(alarm_active, alarm_days, alarm_time):
     sound.say(info_message)
 
 
-def test_alarm():
+def run_test_alarm():
     """test alarm function is executed when 'Test Alarm' button on gui is pressed"""
     # fetch current settings from data.xml
     settings = read_xml_file_namedtuple(str(project_path) + '/data.xml')
@@ -287,6 +287,7 @@ def test_alarm():
     content = settings.content
     individual_msg_active = settings.individual_message
     individual_message = settings.text
+    podcast_url = settings.content_podcast_url
 
     # start alarm based on settings:
     if content == 'podcast':
@@ -296,6 +297,9 @@ def test_alarm():
         # wake up with individual message
         z = threading.Thread(target=sound.say, args=(individual_message,))
         z.start()
+
+        # check if the provided podcast url is working. If not function chooses deafult url
+        podcast_url = check_if_podcast_url_correct(podcast_url)
 
         # download podcast_xml_file according to the podcast_url
         podcast_xml_file = download_file(podcast_url)
@@ -398,7 +402,7 @@ def if_interrupt():
     # write stdout stream to error log
     error_log = open(str(project_path) + '/error.log', 'a')
     sys.stdout = error_log
-    sys.stderr = error_log
+    #sys.stderr = error_log
     print '\n... crashed ... bye!\n'
     error_log.close()
 
@@ -452,7 +456,7 @@ if __name__ == '__main__':
 
     # assign the xml data to the corresponding variables
     alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume,\
-        podcast_url, stream_url = update_settings(str(project_path) + '/data.xml')
+        podcast_url, stream_url, test_alarm = update_settings(str(project_path) + '/data.xml')
 
     # set flag for just played the news
     just_played_alarm = False
@@ -477,8 +481,8 @@ if __name__ == '__main__':
         while True:
             # write stdout stream to error log
             error_log = open(str(project_path) + '/error.log', 'a')
-            sys.stdout = error_log
-            sys.stderr = error_log
+            #sys.stdout = error_log
+            #sys.stderr = error_log
 
             # organise time format
             now = time.strftime("%H%M")
@@ -496,12 +500,13 @@ if __name__ == '__main__':
                 alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume,\
                     podcast_url, stream_url, test_alarm = update_settings(str(project_path) + '/data.xml')
 
-                sound.adjust_volume(volume)
-
-            # check if test alarm was pressed
-            if test_alarm == '1':
-                changeValue('data.xml', 'test_alarm', '0')
-                test_alarm()
+                # check if test alarm was pressed
+                if test_alarm == '1':
+                    print 'now running testalarm'
+                    changeValue(str(project_path) + '/data.xml', 'test_alarm', '0')
+                    run_test_alarm()
+                else:
+                    sound.adjust_volume(volume)
 
             time_to_alarm = int(int(str(alarm_time[:2]) + str(alarm_time[3:]))) - int(now)
 
