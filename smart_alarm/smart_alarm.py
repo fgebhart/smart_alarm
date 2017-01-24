@@ -29,7 +29,7 @@ Features of this python script so far:
 - turn off and on amplifier in order to suppress background noise
 - checks provided podcast + stream url if they are ok, if not play default url
 - possibility to press button without any alarm going: informs you about the next alarm
-- ...
+- writing error log to 'error.log' file
 
 mpc stations:
 
@@ -44,44 +44,42 @@ import urllib2
 import RPi.GPIO as GPIO
 import threading
 from display_class import Display
-from sounds import Sound
+try:
+    from sounds import Sound
+except:
+    pass
 from xml_belongings import *
 import time
 import os
+import sys
 
 
-# import dispay_class
-display = Display()
+def write_to_log(message):
+    """enables logging, provided message will be written to logfile see 'error.log'"""
 
-# import sound class
-sound = Sound()
+    # get current time
+    localtime = time.localtime()
+    logging_time = time.strftime("[%Y-%m-%d--%H:%M:%S] ", localtime)
 
-# set button input pin
-button_input_pin = 24
-# set pin for amplifier switch
-amp_switch_pin = 12
+    # Define the log file
+    f = str(project_path) + '/error.log'
+    # Append to existing log file.
+    # Change 'a' to 'w' to recreate the log file each time.
+    error_log = open(f, 'a')
 
-# turn off GPIO warnings
-GPIO.setwarnings(False)
-# configure RPI GPIO. Make sure to use 1k ohms resistor to protect input pin
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(button_input_pin, GPIO.IN)
-# set pin to output
-GPIO.setup(amp_switch_pin, GPIO.OUT)
-# set output low in order to turn off amplifier and nullify noise
-GPIO.output(amp_switch_pin, 0)
+    # write time and message to file
+    error_log.write(str(logging_time) + str(message) + '\n')
+    # close error file in order to save text while program is rnning
+    error_log.close()
 
-# start smart alarm:
-scroll_message = ' *WELCOME* '
-x = threading.Thread(target=display.scroll, args=(scroll_message, 1,))
-#x.start()
 
-# alternative starting display
-y = threading.Thread(target=display.big_stars, args=(7,))
-y.start()
-
-# read environmental variable for project path
-project_path = os.environ['smart_alarm_path']
+def check_internet():
+    """checks if internet connection is available. If not writes
+    error to log file"""
+    try:
+        response=urllib2.urlopen('http://www.google.com',timeout=2)
+    except:
+        write_to_log("-> internet connection lost")
 
 
 def button_callback(channel):
@@ -96,8 +94,10 @@ def button_callback(channel):
             time.sleep(0.1)
 
         if timer < 3:
+            write_to_log('-> button pressed for < 3 sec')
             tell_when_button_pressed(alarm_active, alarm_days, alarm_time)
         if timer >= 3:
+            write_to_log('-> button pressed for > 3 sec')
             shutdown_pi()
 
     sound.stopping_sound()
@@ -108,7 +108,7 @@ def download_file(link_to_file):
     file_name = link_to_file.split('/')[-1]
     u = urllib2.urlopen(link_to_file)
     f = open(file_name, 'wb')
-    print "Downloading: %s" % file_name
+    print "-> downloading: %s" % file_name
 
     # buffer the file in order to download it
     file_size_dl = 0
@@ -123,7 +123,7 @@ def download_file(link_to_file):
 
     f.close()
     # XML file now is saved (to the same directory like this file)
-    print "download done"
+    print "-> download done"
     return file_name
 
 
@@ -132,7 +132,7 @@ def set_ind_msg(ind_msg_active, ind_msg_text):
     individual message"""
     if ind_msg_active == '0':
         # ind msg is deactivated, therefore create default message
-        print 'ind msg deactivated - construct default msg'
+        print '-> individual message deactivated - constructing default message'
         sayable_time = str(time.strftime("%H %M"))
         today = time.strftime('%A')
         standard_message = 'good morning. It is ' + today + '  ' + sayable_time
@@ -382,7 +382,7 @@ def shutdown_pi():
             time.sleep(0.1)
 
         if shutdown:
-            q = threading.Thread(target=display.shutdown, args=(5,))
+            q = threading.Thread(target=display.shutdown, args=(6,))
             q.start()
             sound.say('O K. Bye!')
             print '... now shutting down ...'
@@ -395,201 +395,252 @@ def if_interrupt():
     k.start()
     display.snake(1)
     GPIO.output(amp_switch_pin, 0)  # switch amp off
-    print '\n... crashed ... bye!'
+    # write stdout stream to error log
+    error_log = open(str(project_path) + '/error.log', 'a')
+    sys.stdout = error_log
+    sys.stderr = error_log
+    print '\n... crashed ... bye!\n'
+    error_log.close()
 
 
-# say welcome message
-welcome_message = 'What is my purpose?'
-sound.say(welcome_message)
+if __name__ == '__main__':
+    # read environmental variable for project path
+    project_path = os.environ['smart_alarm_path']
 
-# start the the button interrupt thread
-GPIO.add_event_detect(button_input_pin, GPIO.BOTH, callback=button_callback)
+    # delete old log file
+    try:
+        os.system('rm ' + str(project_path) + '/error.log')
+    finally:
+        pass
 
-# read out the settings in 'data.xml' from the same folder
-xml_data = update_settings(str(project_path) + '/data.xml')
+    write_to_log('_____________SMART ALARM STARTED_______________')
 
-# assign the xml data to the corresponding variables
-alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume,\
-    podcast_url, stream_url = update_settings(str(project_path) + '/data.xml')
+    # import dispay_class
+    display = Display()
 
-# set flag for just played the news
-just_played_alarm = False
+    # import sound class
+    sound = Sound()
 
-# set loop counter to one (needed to calculate mean of 10 iterations for the display brightness control)
-loop_counter = 1
+    # set button input pin
+    button_input_pin = 24
+    # set pin for amplifier switch
+    amp_switch_pin = 12
 
-# set brightness_data to zero in order to initialize the variable
-brightness_data = 0
+    # turn off GPIO warnings
+    GPIO.setwarnings(False)
+    # configure RPI GPIO. Make sure to use 1k ohms resistor to protect input pin
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(button_input_pin, GPIO.IN)
+    # set pin to output
+    GPIO.setup(amp_switch_pin, GPIO.OUT)
+    # set output low in order to turn off amplifier and nullify noise
+    GPIO.output(amp_switch_pin, 0)
 
-# set the number of iterations to go through for the mean of brightness value
-# 5 looks pretty stable, but does not act too fast on sharp changes. Increase value for more stability,
-# decrease it for faster response time
-number_of_iterations = 5
+    # alternative starting display
+    y = threading.Thread(target=display.big_stars, args=(7,))
+    y.start()
 
-# set decimal point flag - for decimal point blinking
-point = False
+    # say welcome message
+    welcome_message = 'What is my purpose?'
+    sound.say(welcome_message)
 
+    # start the the button interrupt thread
+    GPIO.add_event_detect(button_input_pin, GPIO.BOTH, callback=button_callback)
 
-try:
-    while True:
-        # organise time format
-        now = time.strftime("%H%M")
+    # read out the settings in 'data.xml' from the same folder
+    xml_data = update_settings(str(project_path) + '/data.xml')
 
-        # reset display
-        display.clear_class()
+    # assign the xml data to the corresponding variables
+    alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume,\
+        podcast_url, stream_url = update_settings(str(project_path) + '/data.xml')
 
-        # read xml file and store data to xml_data
-        new_xml_data = update_settings(str(project_path) + '/data.xml')
+    # set flag for just played the news
+    just_played_alarm = False
 
-        # check if xml file was updated. If so, update the variables
-        if xml_data != new_xml_data:
-            print 'file changed - update settings'
-            # set the updated variables
-            alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume,\
-                podcast_url, stream_url = update_settings(str(project_path) + '/data.xml')
+    # set loop counter to one (needed to calculate mean of 10 iterations for the display brightness control)
+    loop_counter = 1
 
-            sound.adjust_volume(volume)
+    # set brightness_data to zero in order to initialize the variable
+    brightness_data = 0
 
-        time_to_alarm = int(int(str(alarm_time[:2]) + str(alarm_time[3:]))) - int(now)
+    # set the number of iterations to go through for the mean of brightness value
+    # 5 looks pretty stable, but does not act too fast on sharp changes. Increase value for more stability,
+    # decrease it for faster response time
+    number_of_iterations = 5
 
-        # check if alarm is activated
-        if alarm_active == '1' and just_played_alarm == False:     # alarm is activated start managing to go off
-            # find the actual day of the week in format of a number in order to compare to the xml days variable
-            today_nr = time.strftime('%w')
+    # set decimal point flag - for decimal point blinking
+    point = False
 
-            if today_nr in alarm_days:      # check if current day is programmed to alarm
-                # alarm is set to go off today, calculate the remaining time to alarm
+    write_to_log('-> starting main loop...')
 
-                if time_to_alarm == 0:
+    try:
+        while True:
+            # write stdout stream to error log
+            error_log = open(str(project_path) + '/error.log', 'a')
+            sys.stdout = error_log
+            sys.stderr = error_log
 
-                    # check if news or audio (offline mp3) is programmed
-                    if content == 'podcast':
+            # organise time format
+            now = time.strftime("%H%M")
 
-                        # display the current time
-                        display.show_time(now)
-                        # write content to display
-                        display.write()
+            # reset display
+            display.clear_class()
 
-                        # set the updated individual wake-up message in order to play it
-                        individual_message = set_ind_msg(individual_msg_active, individual_message)
+            # read xml file and store data to xml_data
+            new_xml_data = update_settings(str(project_path) + '/data.xml')
 
-                        # wake up with individual message
-                        z = threading.Thread(target=sound.say, args=(individual_message,))
-                        z.start()
+            # check if xml file was updated. If so, update the variables
+            if xml_data != new_xml_data:
+                write_to_log('-> data.xml file changed - now update settings')
+                # set the updated variables
+                alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume,\
+                    podcast_url, stream_url = update_settings(str(project_path) + '/data.xml')
 
-                        # check if the provided podcast url is working. If not function chooses deafult url
-                        podcast_url = check_if_podcast_url_correct(podcast_url)
+                sound.adjust_volume(volume)
 
-                        # download podcast_xml_file according to the podcast_url
-                        podcast_xml_file = download_file(podcast_url)
+            time_to_alarm = int(int(str(alarm_time[:2]) + str(alarm_time[3:]))) - int(now)
 
-                        # now parse the podcast_xml_file in order to find the most_recent_news_url
-                        most_recent_news_url = find_most_recent_news_url_in_xml_file(podcast_xml_file)
+            # check if alarm is activated
+            if alarm_active == '1' and just_played_alarm == False:     # alarm is activated start managing to go off
+                # find the actual day of the week in format of a number in order to compare to the xml days variable
+                today_nr = time.strftime('%w')
 
-                        # download the most recent news_mp3_file according to the most_recent_news_url
-                        news_mp3_file = download_file(most_recent_news_url)
+                if today_nr in alarm_days:      # check if current day is programmed to alarm
+                    # alarm is set to go off today, calculate the remaining time to alarm
 
-                        # wait untill thread z (say) is done
-                        while z.isAlive() == True:
-                            time.sleep(0.5)
+                    if time_to_alarm == 0:
+                        write_to_log('---> now starting alarm')
 
-                        # play the most recent news_mp3_file
-                        a = threading.Thread(target=sound.play_mp3_file, args=(news_mp3_file,))
-                        a.start()
+                        # check if news or audio (offline mp3) is programmed
+                        if content == 'podcast':
 
-                        # set flag for just played alarm
-                        just_played_alarm = True
+                            # display the current time
+                            display.show_time(now)
+                            # write content to display
+                            display.write()
 
+                            # set the updated individual wake-up message in order to play it
+                            individual_message = set_ind_msg(individual_msg_active, individual_message)
 
-                    elif content == 'mp3':
-                        # since music is preferred, play the offline mp3 files
+                            # wake up with individual message
+                            z = threading.Thread(target=sound.say, args=(individual_message,))
+                            z.start()
 
-                        # display the current time
-                        display.show_time(now)
-                        # write content to display
-                        display.write()
+                            # check if the provided podcast url is working. If not function chooses deafult url
+                            podcast_url = check_if_podcast_url_correct(podcast_url)
 
-                        # set the updated individual wake-up message in order to play it
-                        individual_message = set_ind_msg(individual_msg_active, individual_message)
+                            # download podcast_xml_file according to the podcast_url
+                            podcast_xml_file = download_file(podcast_url)
 
-                        # wake up with individual message
-                        sound.say(individual_message)
+                            # now parse the podcast_xml_file in order to find the most_recent_news_url
+                            most_recent_news_url = find_most_recent_news_url_in_xml_file(podcast_xml_file)
 
-                        b = threading.Thread(target=sound.play_wakeup_music, args=())
-                        b.start()
+                            # download the most recent news_mp3_file according to the most_recent_news_url
+                            news_mp3_file = download_file(most_recent_news_url)
 
-                        # set flag for just played alarm
-                        just_played_alarm = True
+                            # wait untill thread z (say) is done
+                            while z.isAlive() == True:
+                                time.sleep(0.5)
 
+                            # play the most recent news_mp3_file
+                            a = threading.Thread(target=sound.play_mp3_file, args=(news_mp3_file,))
+                            a.start()
 
-                    elif content == 'stream':
-                        # since internet-radio is preferred, play the online stream
-                        # display the current time
-                        display.show_time(now)
-                        # write content to display
-                        display.write()
-
-                        # set the updated individual wake-up message in order to play it
-                        individual_message = set_ind_msg(individual_msg_active, individual_message)
-
-                        # wake up with individual message
-                        sound.say(individual_message)
-
-                        c = threading.Thread(target=sound.play_online_stream, args=())
-                        c.start()
-
-                        # set flag for just played alarm
-                        just_played_alarm = True
-
-        if time_to_alarm != 0:
-            # set just_played_alarm back to False in order to not miss the next alarm
-            just_played_alarm = False
-
-        # display the current time
-        display.show_time(now)
-
-        # check if alarm is active and set third decimal point
-        if alarm_active == '1':
-            display.set_decimal(3, True)
-        else:
-            # else if alarm is deactivated, turn last decimal point off
-            display.set_decimal(3, False)
-
-        if point:
-            display.set_decimal(1, point)
-            point = False
-            # write content to display
-            display.write()
-            time.sleep(0.5)
-        else:
-            display.set_decimal(1, point)
-            point = True
-            # write content to display
-            display.write()
-            time.sleep(0.5)
-
-        # delete old and unneeded mp3 files
-        delete_old_files(time_to_alarm, alarm_active)
-
-        # update xml file in order to find differences in next loop
-        xml_data = new_xml_data
-
-        # read area brightness with photocell, save the data to current_brightness and add it the brightness_data
-        # in order to calculate the mean of an set of measurements
-        current_brightness = read_photocell()
-        brightness_data += current_brightness
-
-        # print 'loop_counter: %s \t current_brightness: %s \t brightness_data: %s ' % (loop_counter, current_brightness, brightness_data)
-
-        # increase loop counter +1 since loop is about to start again
-        loop_counter += 1
-        if loop_counter > number_of_iterations:
-            display.set_brightness(int(brightness_data) / number_of_iterations)
-            loop_counter = 1
-            brightness_data = 0
+                            # set flag for just played alarm
+                            just_played_alarm = True
 
 
-finally:  # this block will run no matter how the try block exits
-    if_interrupt()
+                        elif content == 'mp3':
+                            # since music is preferred, play the offline mp3 files
+
+                            # display the current time
+                            display.show_time(now)
+                            # write content to display
+                            display.write()
+
+                            # set the updated individual wake-up message in order to play it
+                            individual_message = set_ind_msg(individual_msg_active, individual_message)
+
+                            # wake up with individual message
+                            sound.say(individual_message)
+
+                            b = threading.Thread(target=sound.play_wakeup_music, args=())
+                            b.start()
+
+                            # set flag for just played alarm
+                            just_played_alarm = True
+
+
+                        elif content == 'stream':
+                            # since internet-radio is preferred, play the online stream
+                            # display the current time
+                            display.show_time(now)
+                            # write content to display
+                            display.write()
+
+                            # set the updated individual wake-up message in order to play it
+                            individual_message = set_ind_msg(individual_msg_active, individual_message)
+
+                            # wake up with individual message
+                            sound.say(individual_message)
+
+                            c = threading.Thread(target=sound.play_online_stream, args=())
+                            c.start()
+
+                            # set flag for just played alarm
+                            just_played_alarm = True
+
+            if time_to_alarm != 0:
+                # set just_played_alarm back to False in order to not miss the next alarm
+                just_played_alarm = False
+
+            # display the current time
+            display.show_time(now)
+
+            # check if alarm is active and set third decimal point
+            if alarm_active == '1':
+                display.set_decimal(3, True)
+            else:
+                # else if alarm is deactivated, turn last decimal point off
+                display.set_decimal(3, False)
+
+            if point:
+                display.set_decimal(1, point)
+                point = False
+                # write content to display
+                display.write()
+                time.sleep(0.5)
+            else:
+                display.set_decimal(1, point)
+                point = True
+                # write content to display
+                display.write()
+                time.sleep(0.5)
+
+            # delete old and unneeded mp3 files
+            delete_old_files(time_to_alarm, alarm_active)
+
+            # update xml file in order to find differences in next loop
+            xml_data = new_xml_data
+
+            # read area brightness with photocell, save the data to current_brightness and add it the brightness_data
+            # in order to calculate the mean of an set of measurements
+            current_brightness = read_photocell()
+            brightness_data += current_brightness
+
+            # print 'loop_counter: %s \t current_brightness: %s \t brightness_data: %s ' % (loop_counter, current_brightness, brightness_data)
+
+            # increase loop counter +1 since loop is about to start again
+            loop_counter += 1
+            if loop_counter > number_of_iterations:
+                display.set_brightness(int(brightness_data) / number_of_iterations)
+                loop_counter = 1
+                brightness_data = 0
+
+            # close error log file in order to enable live tracking of errors
+            error_log.close()
+
+    finally:  # this block will run no matter how the try block exits
+        if_interrupt()
 
 

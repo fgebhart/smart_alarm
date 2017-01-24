@@ -8,7 +8,7 @@ class Display(object):
     """
 
     def __init__(self):
-        """init function: imports adafruit alphanumerc display class and begins"""
+        """init function: imports adafruit alphanumeric display class and begins"""
         self.display_lib = AlphaNum4.AlphaNum4()
         self.display_lib.begin()
         self.display_in_use = False
