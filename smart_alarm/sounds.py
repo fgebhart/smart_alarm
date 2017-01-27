@@ -4,7 +4,6 @@ import time
 from random import randint
 import os
 import RPi.GPIO as GPIO
-import sys
 
 
 # set button input pin
@@ -31,11 +30,9 @@ class Sound(object):
         self.sound_active = False
         self.stop_sound = False
 
-
     def stopping_sound(self):
         """stops alarm when button is pressed"""
         self.stop_sound = True
-
 
     def play_mp3_file(self, mp3_file):
         # set output high in order to turn on amplifier
@@ -65,7 +62,6 @@ class Sound(object):
         self.sound_active = False
         self.stop_sound = False
 
-
     def say(self, text):
         """synthesizes the given text to speech"""
         if self.sound_active == True:
@@ -85,14 +81,12 @@ class Sound(object):
         GPIO.output(amp_switch_pin, 0)
         self.sound_active = False
 
-
     def adjust_volume(self, value):
         """adjusts the audio volume by the given value (0-100%)"""
         print '-> adjusting volume'
         volume_command = str('amixer set PCM -- ' + str(value) + '%')
         os.system(volume_command)
         self.play_mp3_file(project_path + '/sounds/blop.mp3')
-
 
     def play_wakeup_music(self):
         """find all mp3 files in the folder /home/pi/music
@@ -106,7 +100,6 @@ class Sound(object):
         random_track = randint(0, len(list_of_music_files)-1)
 
         self.play_mp3_file(list_of_music_files[random_track])
-
 
     def play_online_stream(self):
         """plays online radio using mpc. Press button to stop. Edit mpc playlist by:
