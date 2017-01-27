@@ -32,10 +32,12 @@ Features of this python script so far:
 - writing error log to 'error.log' file
 
 mpc stations:
-
 OrangeFM                http://orange-01.live.sil.at:8000
 SmoothLounge with Ads:  http://streaming.radionomy.com/The-Smooth-Lounge?lang=en-US%2cen%3bq%3d0.8%2cde%3bq%3d0.6
 
+potential podcast stations:
+BBC News: http://www.bbc.co.uk/programmes/p02nq0gn/episodes/downloads.rss
+DLF News: http://www.deutschlandfunk.de/podcast-nachrichten.1257.de.podcast.xml
 
 """
 
@@ -48,10 +50,11 @@ try:
     from sounds import Sound
 except:
     pass
-from xml_belongings import *
 import time
 import os
 import sys
+from xml_data import Xml_data
+from xml.dom import minidom
 
 
 def write_to_log(message):
@@ -95,7 +98,7 @@ def button_callback(channel):
 
         if timer < 3:
             write_to_log('-> button pressed for < 3 sec')
-            tell_when_button_pressed(alarm_active, alarm_days, alarm_time)
+            tell_when_button_pressed(xml_data.alarm_active(), xml_data.alarm_days(), xml_data.alarm_time())
         if timer >= 3:
             write_to_log('-> button pressed for > 3 sec')
             shutdown_pi()
@@ -125,6 +128,19 @@ def download_file(link_to_file):
     # XML file now is saved (to the same directory like this file)
     print "-> download done"
     return file_name
+
+
+def find_most_recent_news_url_in_xml_file(xml_file):
+    """parse the xml file in order to find the url in the first item,
+    corresponding to the most_recent_news_url"""
+    # run XML parser and create a list with all 'enclosure' item urls
+    xmldoc = minidom.parse(xml_file)
+    itemlist = xmldoc.getElementsByTagName('enclosure')
+
+    # search for 'url' and take the first list element
+    most_recent_news_url = itemlist[0].attributes['url'].value
+
+    return most_recent_news_url
 
 
 def set_ind_msg(ind_msg_active, ind_msg_text):
@@ -282,12 +298,12 @@ def tell_when_button_pressed(alarm_active, alarm_days, alarm_time):
 def run_test_alarm():
     """test alarm function is executed when 'Test Alarm' button on gui is pressed"""
     # fetch current settings from data.xml
-    settings = read_xml_file_namedtuple(str(project_path) + '/data.xml')
+    #settings = read_xml_file_namedtuple(str(project_path) + '/data.xml')
     # only content and individual message are relevant
-    content = settings.content
-    individual_msg_active = settings.individual_message
-    individual_message = settings.text
-    podcast_url = settings.content_podcast_url
+    content = xml_data.content()
+    individual_msg_active = xml_data.individual_message_active()
+    individual_message = xml_data.individual_message_text()
+    podcast_url = xml_data.content_podcast_url
 
     # start alarm based on settings:
     if content == 'podcast':
@@ -299,7 +315,7 @@ def run_test_alarm():
         z.start()
 
         # check if the provided podcast url is working. If not function chooses deafult url
-        podcast_url = check_if_podcast_url_correct(podcast_url)
+        podcast_url = check_if_podcast_url_correct(xml_data.content_podcast_url())
 
         # download podcast_xml_file according to the podcast_url
         podcast_xml_file = download_file(podcast_url)
@@ -340,7 +356,7 @@ def run_test_alarm():
 def check_if_podcast_url_correct(url):
     """check if the provided url is okay, if not, inform master and use default podcast url"""
     # manage default podcast url
-    default_podcast_url = "http://www.bbc.co.uk/programmes/p02nq0gn/episodes/downloads.rss"
+    default_podcast_url = "http://www.deutschlandfunk.de/podcast-nachrichten.1257.de.podcast.xml"
     # BBC News: http://www.bbc.co.uk/programmes/p02nq0gn/episodes/downloads.rss
     # DLF News: http://www.deutschlandfunk.de/podcast-nachrichten.1257.de.podcast.xml
     most_recent_news_url = 'no_mp3_file'
@@ -352,7 +368,7 @@ def check_if_podcast_url_correct(url):
         return default_podcast_url
 
     try:
-        podcast_xml_file = download_file(podcast_url)
+        podcast_xml_file = download_file(url)
         most_recent_news_url = find_most_recent_news_url_in_xml_file(podcast_xml_file)
     finally:
         if most_recent_news_url.endswith('.mp3'):
@@ -425,6 +441,9 @@ if __name__ == '__main__':
     # import sound class
     sound = Sound()
 
+    # import xml class
+    xml_data = Xml_data(str(project_path) + '/data.xml')
+
     # set button input pin
     button_input_pin = 24
     # set pin for amplifier switch
@@ -452,11 +471,11 @@ if __name__ == '__main__':
     GPIO.add_event_detect(button_input_pin, GPIO.BOTH, callback=button_callback)
 
     # read out the settings in 'data.xml' from the same folder
-    xml_data = update_settings(str(project_path) + '/data.xml')
+    xml_file = xml_data.read_data()
 
     # assign the xml data to the corresponding variables
-    alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume,\
-        podcast_url, stream_url, test_alarm = update_settings(str(project_path) + '/data.xml')
+    #alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume,\
+    #    podcast_url, stream_url, test_alarm = xml_data.
 
     # set flag for just played the news
     just_played_alarm = False
@@ -491,38 +510,41 @@ if __name__ == '__main__':
             display.clear_class()
 
             # read xml file and store data to xml_data
-            new_xml_data = update_settings(str(project_path) + '/data.xml')
+            new_xml_file = xml_data.read_data()
+
+            write_to_log(str(xml_file) + '\n')
+            write_to_log(str(new_xml_file) + '\n')
 
             # check if xml file was updated. If so, update the variables
-            if xml_data != new_xml_data:
+            if xml_file != new_xml_file:
                 write_to_log('-> data.xml file changed - now update settings')
                 # set the updated variables
-                alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume,\
-                    podcast_url, stream_url, test_alarm = update_settings(str(project_path) + '/data.xml')
+                #alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume,\
+                #    podcast_url, stream_url, test_alarm = update_settings(str(project_path) + '/data.xml')
 
                 # check if test alarm was pressed
-                if test_alarm == '1':
+                if xml_data.test_alarm() == '1':
                     print 'now running testalarm'
-                    changeValue(str(project_path) + '/data.xml', 'test_alarm', '0')
+                    xml_data.changeValue('test_alarm', '0')
                     run_test_alarm()
                 else:
-                    sound.adjust_volume(volume)
+                    sound.adjust_volume(xml_data.volume())
 
-            time_to_alarm = int(int(str(alarm_time[:2]) + str(alarm_time[3:]))) - int(now)
+            time_to_alarm = int(int(str(xml_data.alarm_time()[:2]) + str(xml_data.alarm_time()[3:]))) - int(now)
 
             # check if alarm is activated
-            if alarm_active == '1' and just_played_alarm == False:     # alarm is activated start managing to go off
+            if xml_data.alarm_active() == '1' and just_played_alarm == False:     # alarm is activated start managing to go off
                 # find the actual day of the week in format of a number in order to compare to the xml days variable
                 today_nr = time.strftime('%w')
 
-                if today_nr in alarm_days:      # check if current day is programmed to alarm
+                if today_nr in xml_data.alarm_days():      # check if current day is programmed to alarm
                     # alarm is set to go off today, calculate the remaining time to alarm
 
                     if time_to_alarm == 0:
                         write_to_log('---> now starting alarm')
 
                         # check if news or audio (offline mp3) is programmed
-                        if content == 'podcast':
+                        if xml_data.content() == 'podcast':
 
                             # display the current time
                             display.show_time(now)
@@ -530,14 +552,14 @@ if __name__ == '__main__':
                             display.write()
 
                             # set the updated individual wake-up message in order to play it
-                            individual_message = set_ind_msg(individual_msg_active, individual_message)
+                            individual_message = set_ind_msg(xml_data.individual_message_active(), xml_data.individual_message_text())
 
                             # wake up with individual message
                             z = threading.Thread(target=sound.say, args=(individual_message,))
                             z.start()
 
                             # check if the provided podcast url is working. If not function chooses deafult url
-                            podcast_url = check_if_podcast_url_correct(podcast_url)
+                            podcast_url = check_if_podcast_url_correct(xml_data.content_podcast_url())
 
                             # download podcast_xml_file according to the podcast_url
                             podcast_xml_file = download_file(podcast_url)
@@ -560,7 +582,7 @@ if __name__ == '__main__':
                             just_played_alarm = True
 
 
-                        elif content == 'mp3':
+                        elif xml_data.content() == 'mp3':
                             # since music is preferred, play the offline mp3 files
 
                             # display the current time
@@ -569,7 +591,7 @@ if __name__ == '__main__':
                             display.write()
 
                             # set the updated individual wake-up message in order to play it
-                            individual_message = set_ind_msg(individual_msg_active, individual_message)
+                            individual_message = set_ind_msg(xml_data.individual_message_active(), xml_data.individual_message_text())
 
                             # wake up with individual message
                             sound.say(individual_message)
@@ -581,7 +603,7 @@ if __name__ == '__main__':
                             just_played_alarm = True
 
 
-                        elif content == 'stream':
+                        elif xml_data.content() == 'stream':
                             # since internet-radio is preferred, play the online stream
                             # display the current time
                             display.show_time(now)
@@ -589,7 +611,7 @@ if __name__ == '__main__':
                             display.write()
 
                             # set the updated individual wake-up message in order to play it
-                            individual_message = set_ind_msg(individual_msg_active, individual_message)
+                            individual_message = set_ind_msg(xml_data.individual_message_active(), xml_data.individual_message_text())
 
                             # wake up with individual message
                             sound.say(individual_message)
@@ -608,7 +630,7 @@ if __name__ == '__main__':
             display.show_time(now)
 
             # check if alarm is active and set third decimal point
-            if alarm_active == '1':
+            if xml_data.alarm_active() == '1':
                 display.set_decimal(3, True)
             else:
                 # else if alarm is deactivated, turn last decimal point off
@@ -628,10 +650,10 @@ if __name__ == '__main__':
                 time.sleep(0.5)
 
             # delete old and unneeded mp3 files
-            delete_old_files(time_to_alarm, alarm_active)
+            delete_old_files(time_to_alarm, xml_data.alarm_active())
 
             # update xml file in order to find differences in next loop
-            xml_data = new_xml_data
+            xml_file = new_xml_file
 
             # read area brightness with photocell, save the data to current_brightness and add it the brightness_data
             # in order to calculate the mean of an set of measurements
