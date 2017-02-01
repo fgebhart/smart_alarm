@@ -9,7 +9,7 @@ import RPi.GPIO as GPIO
 # set button input pin
 button_input_pin = 24
 # set pin for amplifier switch
-amp_switch_pin = 12
+amp_switch_pin = 5
 
 # turn off GPIO warnings
 GPIO.setwarnings(False)
