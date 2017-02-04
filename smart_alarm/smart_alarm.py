@@ -53,9 +53,9 @@ import time
 import os
 import sys
 from xml_data import Xml_data
-from led import LEDs
+#from led import LEDs
 from xml.dom import minidom
-import wiringpi as wiringpi
+#import wiringpi as wiringpi
 import logging
 
 
@@ -424,12 +424,12 @@ def activate_gpio_pwm():
     """activates the pwm alternative gpio functions
     in order to activate audio"""
     # GPIO port numbers (BCM)
-    wiringpi.wiringPiSetupGpio()
+    #wiringpi.wiringPiSetupGpio()
 
     print '-> now setting gpio pwm functions'
     # set alternative functions of pins in order to enable audio via pwm
-    wiringpi.pinMode(13, 2)  # sets GPIO 13 to PWM mode
-    wiringpi.pinMode(18, 2)  # sets GPIO 18 to PWM mode
+    #wiringpi.pinMode(13, 2)  # sets GPIO 13 to PWM mode
+    #wiringpi.pinMode(18, 2)  # sets GPIO 18 to PWM mode
 
 
 print '-> now initializing variables...'
