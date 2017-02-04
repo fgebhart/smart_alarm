@@ -1,26 +1,25 @@
-<?xml version="1.0" ?>
-<data>
+<?xml version="1.0" ?><data>
 
-    <alarm_time>00:04</alarm_time>
+    <alarm_time>07:15</alarm_time>
 
     <test_alarm>0</test_alarm>
 
     <last_modified>19:59:34</last_modified>
 
-    <content>podcast</content>
+    <content>mp3</content>
     
     <content_podcast_url>podcast test</content_podcast_url>
     
     <content_stream_url>stream_url awe</content_stream_url>
 
-    <days>2,4,6,0</days>
+    <days>1,2,3,4,5,0</days>
 
     <alarm_active>1</alarm_active>
 
     <individual_message>1</individual_message>
 
-    <text>test test test asdasd</text>
+    <text>you better get up now!</text>
 
-    <volume>73</volume>
+    <volume>92.5</volume>
 
 </data>
