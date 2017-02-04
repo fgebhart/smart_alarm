@@ -272,21 +272,21 @@ def tell_when_button_pressed(alarm_active, alarm_days, alarm_time):
     sound.say(info_message)
 
 
-def run_test_alarm():
-    """test alarm function is executed when 'Test Alarm' button on gui is pressed"""
-    # fetch current settings from data.xml
-    # only content and individual message are relevant
-    content = xml_data.content()
-    individual_msg_active = xml_data.individual_message_active()
-    individual_message = xml_data.individual_message_text()
-    podcast_url = xml_data.content_podcast_url
+def run_alarm():
+    """main function to run the alarm, based
+    on the configured settings in data.xml"""
+    logger.info('---> now starting alarm')
 
-    logger.info('running test alarm now')
+    # check if news or audio (offline mp3) is programmed
+    if xml_data.content() == 'podcast':
 
-    # start alarm based on settings:
-    if content == 'podcast':
+        # display the current time
+        display.show_time(now)
+        # write content to display
+        display.write()
+
         # set the updated individual wake-up message in order to play it
-        individual_message = set_ind_msg(individual_msg_active, individual_message)
+        individual_message = set_ind_msg(xml_data.individual_message_active(), xml_data.individual_message_text())
 
         # wake up with individual message
         z = threading.Thread(target=sound.say, args=(individual_message,))
@@ -311,24 +311,39 @@ def run_test_alarm():
         # play the most recent news_mp3_file
         a = threading.Thread(target=sound.play_mp3_file, args=(news_mp3_file,))
         a.start()
-    elif content == 'mp3':
+
+    elif xml_data.content() == 'mp3':
+        # since music is preferred, play the offline mp3 files
+
+        # display the current time
+        display.show_time(now)
+        # write content to display
+        display.write()
+
         # set the updated individual wake-up message in order to play it
-        individual_message = set_ind_msg(individual_msg_active, individual_message)
+        individual_message = set_ind_msg(xml_data.individual_message_active(), xml_data.individual_message_text())
 
         # wake up with individual message
         sound.say(individual_message)
 
         b = threading.Thread(target=sound.play_wakeup_music, args=())
         b.start()
-    elif content == 'stream':
+
+    elif xml_data.content() == 'stream':
+        # since internet-radio is preferred, play the online stream
+        # display the current time
+        # write content to display
+        display.write()
+
         # set the updated individual wake-up message in order to play it
-        individual_message = set_ind_msg(individual_msg_active, individual_message)
+        individual_message = set_ind_msg(xml_data.individual_message_active(), xml_data.individual_message_text())
 
         # wake up with individual message
         sound.say(individual_message)
 
         c = threading.Thread(target=sound.play_online_stream, args=())
         c.start()
+
 
 
 def check_if_podcast_url_correct(url):
@@ -394,7 +409,7 @@ def if_interrupt():
     k.start()
     display.snake(1)
     GPIO.output(amp_switch_pin, 0)  # switch amp off
-    print '\n... crashed ... bye!\n'
+    print '\n... crashed ... bye!\n   -> check error.log for more information'
 
 
 def change_stream_url(stream_url):
@@ -427,7 +442,7 @@ if __name__ == '__main__':
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
     # create a file handler
-    handler = logging.FileHandler('error.log')
+    handler = logging.FileHandler(str(project_path) + '/error.log')
     handler.setLevel(logging.DEBUG)
     # create a logging format
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -481,10 +496,6 @@ if __name__ == '__main__':
     # read out the settings in 'data.xml' from the same folder
     xml_file = xml_data.read_data()
 
-    # assign the xml data to the corresponding variables
-    #alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume,\
-    #    podcast_url, stream_url, test_alarm = xml_data.
-
     # set flag for just played the news
     just_played_alarm = False
 
@@ -504,17 +515,6 @@ if __name__ == '__main__':
 
     logger.info('-> starting main loop...')
 
-    # test to run LED
-    """
-    wiringpi.pinMode(13, 0)  # sets GPIO 13 to input mode
-    wiringpi.pinMode(18, 0)  # sets GPIO 18 to input mode
-    wiringpi.pinMode(12, 2)  # sets GPIO 12 to PWM mode
-    led.soft_wake_up(10)
-    wiringpi.pinMode(12, 0)  # sets GPIO 12 to input mode
-    wiringpi.pinMode(13, 2)  # sets GPIO 13 to PWM mode
-    wiringpi.pinMode(18, 2)  # sets GPIO 18 to PWM mode
-    """
-
     try:
         while True:
             # organise time format
@@ -529,15 +529,12 @@ if __name__ == '__main__':
             # check if xml file was updated. If so, update the variables
             if xml_file != new_xml_file:
                 logger.info('-> data.xml file changed - now update settings')
-                # set the updated variables
-                #alarm_active, alarm_time, content, alarm_days, individual_msg_active, individual_message, volume,\
-                #    podcast_url, stream_url, test_alarm = update_settings(str(project_path) + '/data.xml')
 
                 # check if test alarm was pressed
                 if xml_data.test_alarm() == '1':
                     print 'now running testalarm'
                     xml_data.changeValue('test_alarm', '0')
-                    run_test_alarm()
+                    run_alarm()
                 else:
                     sound.adjust_volume(xml_data.volume())
 
@@ -554,83 +551,8 @@ if __name__ == '__main__':
                     if time_to_alarm == 0:
                         logger.info('---> now starting alarm')
 
-                        # check if news or audio (offline mp3) is programmed
-                        if xml_data.content() == 'podcast':
-
-                            # display the current time
-                            display.show_time(now)
-                            # write content to display
-                            display.write()
-
-                            # set the updated individual wake-up message in order to play it
-                            individual_message = set_ind_msg(xml_data.individual_message_active(), xml_data.individual_message_text())
-
-                            # wake up with individual message
-                            z = threading.Thread(target=sound.say, args=(individual_message,))
-                            z.start()
-
-                            # check if the provided podcast url is working. If not function chooses deafult url
-                            podcast_url = check_if_podcast_url_correct(xml_data.content_podcast_url())
-
-                            # download podcast_xml_file according to the podcast_url
-                            podcast_xml_file = download_file(podcast_url)
-
-                            # now parse the podcast_xml_file in order to find the most_recent_news_url
-                            most_recent_news_url = find_most_recent_news_url_in_xml_file(podcast_xml_file)
-
-                            # download the most recent news_mp3_file according to the most_recent_news_url
-                            news_mp3_file = download_file(most_recent_news_url)
-
-                            # wait untill thread z (say) is done
-                            while z.isAlive() == True:
-                                time.sleep(0.5)
-
-                            # play the most recent news_mp3_file
-                            a = threading.Thread(target=sound.play_mp3_file, args=(news_mp3_file,))
-                            a.start()
-
-                            # set flag for just played alarm
-                            just_played_alarm = True
-
-
-                        elif xml_data.content() == 'mp3':
-                            # since music is preferred, play the offline mp3 files
-
-                            # display the current time
-                            display.show_time(now)
-                            # write content to display
-                            display.write()
-
-                            # set the updated individual wake-up message in order to play it
-                            individual_message = set_ind_msg(xml_data.individual_message_active(), xml_data.individual_message_text())
-
-                            # wake up with individual message
-                            sound.say(individual_message)
-
-                            b = threading.Thread(target=sound.play_wakeup_music, args=())
-                            b.start()
-
-                            # set flag for just played alarm
-                            just_played_alarm = True
-
-
-                        elif xml_data.content() == 'stream':
-                            # since internet-radio is preferred, play the online stream
-                            # display the current time
-                            # write content to display
-                            display.write()
-
-                            # set the updated individual wake-up message in order to play it
-                            individual_message = set_ind_msg(xml_data.individual_message_active(), xml_data.individual_message_text())
-
-                            # wake up with individual message
-                            sound.say(individual_message)
-
-                            c = threading.Thread(target=sound.play_online_stream, args=())
-                            c.start()
-
-                            # set flag for just played alarm
-                            just_played_alarm = True
+                        run_alarm()
+                        just_played_alarm = True
 
             if time_to_alarm != 0:
                 # set just_played_alarm back to False in order to not miss the next alarm
