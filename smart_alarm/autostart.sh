@@ -12,6 +12,6 @@ gpio_alt -p 18 -f 5
 #gpio_alt -p 12 -f 0
 
 # run smart_alarm main script
-sudo python $smart_alarm_path/smart_alarm.py &
+python $smart_alarm_path/smart_alarm.py &
 
 sudo chmod o+w $smart_alarm_path/data.xml
