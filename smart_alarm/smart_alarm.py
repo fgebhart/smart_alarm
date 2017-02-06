@@ -30,6 +30,9 @@ Features of this python script so far:
 - checks provided podcast + stream url if they are ok, if not play default url
 - possibility to press button without any alarm going: informs you about the next alarm
 - writing error log to 'error.log' file
+- checks for internet connection 2mins before alarm, since the connection sometimes
+    get lost during the night
+- ...
 
 mpc stations:
 OrangeFM                http://orange-01.live.sil.at:8000
@@ -55,7 +58,6 @@ import sys
 from xml_data import Xml_data
 #from led import LEDs
 from xml.dom import minidom
-#import wiringpi as wiringpi
 import logging
 
 
@@ -420,18 +422,6 @@ def change_stream_url(stream_url):
     os.system(string_command_add_url)
 
 
-def activate_gpio_pwm():
-    """activates the pwm alternative gpio functions
-    in order to activate audio"""
-    # GPIO port numbers (BCM)
-    #wiringpi.wiringPiSetupGpio()
-
-    print '-> now setting gpio pwm functions'
-    # set alternative functions of pins in order to enable audio via pwm
-    #wiringpi.pinMode(13, 2)  # sets GPIO 13 to PWM mode
-    #wiringpi.pinMode(18, 2)  # sets GPIO 18 to PWM mode
-
-
 print '-> now initializing variables...'
 
 if __name__ == '__main__':
@@ -496,8 +486,9 @@ if __name__ == '__main__':
     # read out the settings in 'data.xml' from the same folder
     xml_file = xml_data.read_data()
 
-    # set flag for just played the news
+    # set flag for just played alarm and just checked wifi
     just_played_alarm = False
+    just_cheked_wifi = False
 
     # set loop counter to one (needed to calculate mean of 10 iterations for the display brightness control)
     loop_counter = 1
@@ -547,6 +538,14 @@ if __name__ == '__main__':
 
                 if today_nr in xml_data.alarm_days():      # check if current day is programmed to alarm
                     # alarm is set to go off today, calculate the remaining time to alarm
+
+                    if time_to_alarm == 2 and just_cheked_wifi == False:
+                        just_cheked_wifi = True
+                        logger.info('-> now checking internet connection and restart wlan0 if needed')
+                        logger.debug(str(os.system('sudo ifup wlan0')) + ' zero means wlan0 is still on.')
+
+                    if time_to_alarm != 2:
+                        just_cheked_wifi = False
 
                     if time_to_alarm == 0:
                         logger.info('---> now starting alarm')
