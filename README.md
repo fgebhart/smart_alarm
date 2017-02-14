@@ -3,6 +3,9 @@ Welcome to the _open source alarm clock_ project **smart_alarm**!
 
 <img src="https://github.com/fgebhart/smart_alarm/blob/master/instructions/pics/final_in_case.JPG" width="300">
 
+
+***Update: amp_switch_pin moved to GPIO 5, please consider for your wiring***
+
 The smart_alarm project provides an easy to build and program Internet of Things alarm clock. We would love to see you build your own version of it. It is designed, such that you can adapt your needs and improve it easily. Let us know if you want to contribute to this repository or simply want to share your ideas. All kind of support is appreciated. 
 
 ### Features
