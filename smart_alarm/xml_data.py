@@ -1,5 +1,6 @@
 from xml.dom import minidom
 
+
 class Xml_data(object):
     """
     class handling the xml operations. The given functions will return

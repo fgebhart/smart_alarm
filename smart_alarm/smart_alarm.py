@@ -54,7 +54,6 @@ except:
     pass
 import time
 import os
-import sys
 from xml_data import Xml_data
 #from led import LEDs
 from xml.dom import minidom
@@ -347,7 +346,6 @@ def run_alarm():
         c.start()
 
 
-
 def check_if_podcast_url_correct(url):
     """check if the provided url is okay, if not, inform master and use default podcast url"""
     # manage default podcast url
@@ -440,7 +438,7 @@ if __name__ == '__main__':
     # add the handlers to the logger
     logger.addHandler(handler)
     # write to error.log file
-    logger.info('____SMART ALARM STARTED____')
+    logger.info('\n \n         ______SMART ALARM STARTED______')
 
     # import dispay_class
     display = Display()
@@ -453,9 +451,6 @@ if __name__ == '__main__':
 
     # import led class
     #led = LEDs()
-
-    # activate alternative gpio function
-    #activate_gpio_pwm()
 
     # set button input pin
     button_input_pin = 24
@@ -479,6 +474,9 @@ if __name__ == '__main__':
     # say welcome message
     welcome_message = 'What is my purpose?'
     sound.say(welcome_message)
+
+    # test leds
+    #led.rainbow(20,1)
 
     # start the the button interrupt thread
     GPIO.add_event_detect(button_input_pin, GPIO.BOTH, callback=button_callback)
@@ -539,12 +537,12 @@ if __name__ == '__main__':
                 if today_nr in xml_data.alarm_days():      # check if current day is programmed to alarm
                     # alarm is set to go off today, calculate the remaining time to alarm
 
-                    if time_to_alarm == 2 and just_cheked_wifi == False:
+                    if time_to_alarm == 1 and just_cheked_wifi == False:
                         just_cheked_wifi = True
                         logger.info('-> now checking internet connection and restart wlan0 if needed')
                         logger.debug(str(os.system('sudo ifup wlan0')) + ' zero means wlan0 is still on.')
 
-                    if time_to_alarm != 2:
+                    if time_to_alarm != 1:
                         just_cheked_wifi = False
 
                     if time_to_alarm == 0:

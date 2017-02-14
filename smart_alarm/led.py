@@ -1,6 +1,24 @@
 import time
 import colorsys
 from neopixel import *
+import logging
+import os
+
+
+# read environmental variable for project path
+project_path = os.environ['smart_alarm_path']
+
+# enable python logging module
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+# create a file handler
+handler = logging.FileHandler(str(project_path) + '/error.log')
+handler.setLevel(logging.DEBUG)
+# create a logging format
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+# add the handlers to the logger
+logger.addHandler(handler)
 
 
 class LEDs(object):
@@ -10,6 +28,8 @@ class LEDs(object):
 
     def __init__(self):
         """init functions: set variables and start adafruit neopixles class"""
+        # write to error.log file
+        logger.info('-> led-module initialized')
         # initialize start variables
         self.LED_COUNT = 1              # Number of LED pixels.
         self.LED_PIN = 12               # GPIO pin connected to the pixels (must support PWM!).
@@ -21,6 +41,7 @@ class LEDs(object):
         self.strip = Adafruit_NeoPixel(self.LED_COUNT, self.LED_PIN, self.LED_FREQ_HZ, self.LED_DMA, self.LED_INVERT, self.LED_BRIGHTNESS)
         # Intialize the library (must be called once before other functions).
         self.strip.begin()
+
 
     # Define functions which animate LEDs in various ways.
     def color_wipe(self, color, wait_ms):
@@ -60,6 +81,7 @@ class LEDs(object):
             return Color(0, pos * 3, 255 - pos * 3)
 
     def rainbow(self, wait_ms=20, iterations=1):
+        print 'now running rainbow'
         """Draw rainbow that fades across all pixels at once."""
         for j in range(256*iterations):
             for i in range(self.strip.numPixels()):

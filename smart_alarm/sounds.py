@@ -4,6 +4,7 @@ import time
 from random import randint
 import os
 import RPi.GPIO as GPIO
+import logging
 
 
 # set button input pin
@@ -21,14 +22,29 @@ GPIO.setup(amp_switch_pin, GPIO.OUT)
 # read environmental variable for project path
 project_path = os.environ['smart_alarm_path']
 
+# enable python logging module
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+# create a file handler
+handler = logging.FileHandler(str(project_path) + '/error.log')
+handler.setLevel(logging.DEBUG)
+# create a logging format
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+# add the handlers to the logger
+logger.addHandler(handler)
+
 
 class Sound(object):
     """sound class manages smart alarm audio"""
 
     def __init__(self):
         """initialize variables"""
+        # write to error.log file
+        logger.info('-> sound-module initialized')
         self.sound_active = False
         self.stop_sound = False
+
 
     def stopping_sound(self):
         """stops alarm when button is pressed"""
@@ -36,6 +52,8 @@ class Sound(object):
 
     def play_mp3_file(self, mp3_file):
         # set output high in order to turn on amplifier
+        logger.info('-> now playing mp3')
+
         if self.sound_active == True:
             return
 
@@ -64,6 +82,7 @@ class Sound(object):
 
     def say(self, text):
         """synthesizes the given text to speech"""
+        logger.info('-> now saying something')
         if self.sound_active == True:
             return
 

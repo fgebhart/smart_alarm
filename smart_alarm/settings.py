@@ -25,7 +25,6 @@ class Settings(object):
         self._text = '.'
         self._volume = '50'
 
-
     def get_alarm_time(self): return self._alarm_time
     def set_alarm_time(self, value): self._alarm_time = value
 

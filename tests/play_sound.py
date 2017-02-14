@@ -2,7 +2,7 @@ import pygame
 import RPi.GPIO as GPIO
 
 # set pin for amplifier switch
-amp_switch_pin = 12
+amp_switch_pin = 5
 
 # configure RPI GPIO
 GPIO.setmode(GPIO.BCM)
