@@ -48,10 +48,7 @@ import urllib2
 import RPi.GPIO as GPIO
 import threading
 from display_class import Display
-try:
-    from sounds import Sound
-except:
-    pass
+from sounds import Sound
 import time
 import os
 from xml_data import Xml_data
@@ -595,7 +592,7 @@ if __name__ == '__main__':
 
     # make sure to save all error messages to the log file
     except:
-        logger.exception('Got error on main handler')         #error('Error, main loop crashed', exc_info=True)
+        logger.exception('Got error on main handler')
 
     finally:  # this block will run no matter how the try block exits
         if_interrupt()

@@ -1,8 +1,9 @@
 import time
-import colorsys
-from dotstar import Adafruit_DotStar
-import logging
 import os
+import sys
+sys.path.append(os.path.abspath("/home/pi/APA102_Pi"))
+import colorschemes
+import logging
 
 
 # read environmental variable for project path
@@ -23,43 +24,33 @@ logger.addHandler(handler)
 
 class LEDs(object):
     """
-    LEDs class: manages the implementation of the 'wake-up'-leds
+    LEDs class: manages the implementation of the 'wake-up'-leds.
+    Makes us of tinues APA102_Pi library: https://github.com/tinue/APA102_Pi
     """
 
     def __init__(self):
         """init functions: set variables and start adafruit dotstar class"""
         # write to error.log file
         logger.info('-> led-module initialized')
-        # initialize start variables
-        self.numpixels = 18
-        self.datapin   = 10
-        self.clockpin  = 11
-        self.strip     = Adafruit_DotStar(self.numpixels, self.datapin, self.clockpin)
-        # Initialize the library (must be called once before other functions).
-        self.strip.begin()
-        self.strip.setBrightness(64) # Limit brightness to ~1/4 duty cycle
+        self.number_of_leds = 9
 
-
-    def loop_rgb(self, duration_time):
-        """runs 10 leds with red, then green and then blue in a loop"""
+    def rainbow(self, brightness, duration_time):
+        """colorful rainbow cycling through all leds"""
         clock = 0
         start = time.time()
-        head = 0  # Index of first 'on' pixel
-        tail = -10  # Index of last 'off' pixel
-        color = 0xFF0000  # 'On' color (starts red)
+        while clock < duration_time:
+            rainbow = colorschemes.Rainbow(numLEDs=self.number_of_leds, pauseValue=0.05, numStepsPerCycle=255,
+                                           numCycles=2, globalBrightness=brightness)
+            rainbow.start()
+            clock = time.time() - start
 
-        while clock < duration_time:  # Loop forever
-            self.strip.setPixelColor(head, color)  # Turn on 'head' pixel
-            self.strip.setPixelColor(tail, 0)  # Turn off 'tail'
-            self.strip.show()  # Refresh strip
-            time.sleep(1.0 / 50)  # Pause 20 milliseconds (~50 fps)
-
-            head += 1  # Advance head position
-            if (head >= self.numpixels):  # Off end of strip?
-                head = 0  # Reset to start
-                color >>= 8  # Red->green->blue->black
-                if (color == 0): color = 0xFF0000  # If black, reset to red
-
-                tail += 1  # Advance tail position
-            if (tail >= self.numpixels): tail = 0  # Off end? Reset
+    def white_blinking(self, duration_time):
+        """most bright white blinking, finally you should wake up"""
+        clock = 0
+        start = time.time()
+        while clock < duration_time:
+            blinking = colorschemes.Solid(numLEDs=self.number_of_leds, pauseValue=0.05, numStepsPerCycle=1,
+                                          numCycles=1)
+            blinking.start()
+            time.sleep(0.05)
             clock = time.time() - start
