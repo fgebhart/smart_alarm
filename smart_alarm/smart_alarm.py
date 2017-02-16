@@ -55,7 +55,7 @@ except:
 import time
 import os
 from xml_data import Xml_data
-#from led import LEDs
+from led import LEDs
 from xml.dom import minidom
 import logging
 
@@ -450,7 +450,7 @@ if __name__ == '__main__':
     xml_data = Xml_data(str(project_path) + '/data.xml')
 
     # import led class
-    #led = LEDs()
+    led = LEDs()
 
     # set button input pin
     button_input_pin = 24
@@ -474,9 +474,6 @@ if __name__ == '__main__':
     # say welcome message
     welcome_message = 'What is my purpose?'
     sound.say(welcome_message)
-
-    # test leds
-    #led.rainbow(20,1)
 
     # start the the button interrupt thread
     GPIO.add_event_detect(button_input_pin, GPIO.BOTH, callback=button_callback)
