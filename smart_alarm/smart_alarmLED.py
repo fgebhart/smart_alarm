@@ -395,9 +395,12 @@ def shutdown_pi():
 
         if shutdown:
             logger.debug('manually shutting down now')
-            q = threading.Thread(target=display.shutdown, args=(6,))
+            q = threading.Thread(target=display.shutdown, args=(3,))
             q.start()
             sound.say('O K. Bye!')
+            display.clear_class()
+            display.scroll('    ', 4)
+            display.write()
             print '... now shutting down ...'
             os.system('sudo poweroff')
 
@@ -541,12 +544,11 @@ if __name__ == '__main__':
                 if today_nr in xml_data.alarm_days():      # check if current day is programmed to alarm
                     # alarm is set to go off today, calculate the remaining time to alarm
 
-                    if time_to_alarm == 1 or time_to_alarm % 100 == 0 and just_cheked_wifi == False :      # checks every hour and 1 min
-                        # before alarm goes of for the internet connection
+                    if time_to_alarm % 5 == 0 and just_cheked_wifi == False :      # checks every 5 min for wifi
                         just_cheked_wifi = True
                         logger.info('checking internet connection and restart wlan0 if needed')
                         logger.debug(str(os.system('sudo ifup wlan0')) + ' zero means wlan0 is still on.')
-                    else:
+                    elif time_to_alarm % 5 != 0:
                         just_cheked_wifi = False
 
                     if time_to_alarm == 0:
