@@ -41,18 +41,19 @@ class Sound(object):
     def __init__(self):
         """initialize variables"""
         # write to error.log file
-        logger.info('-> sound-module initialized')
+        logger.info('sound-module initialized')
         self.sound_active = False
         self.stop_sound = False
 
 
     def stopping_sound(self):
         """stops alarm when button is pressed"""
+        logger.info('sound is being stopped')
         self.stop_sound = True
 
     def play_mp3_file(self, mp3_file):
         # set output high in order to turn on amplifier
-        logger.info('-> now playing mp3')
+        logger.info('now playing mp3')
 
         if self.sound_active == True:
             return
@@ -62,14 +63,15 @@ class Sound(object):
         time.sleep(0.3)
         pygame.mixer.init()
         pygame.mixer.music.load(mp3_file)
-        print "-> now playing file: ", mp3_file
+        print "now playing file: ", mp3_file
         pygame.mixer.music.play()
         while pygame.mixer.music.get_busy():
             time.sleep(0.1)
             if self.stop_sound:
                 pygame.mixer.music.stop()
                 pygame.mixer.quit()
-                print '-> mp3 alarm turned off'
+                print 'mp3 alarm turned off'
+                logger.debug('mp3 alarm turned off via button pressed')
                 break
             else:
                 continue
@@ -82,7 +84,7 @@ class Sound(object):
 
     def say(self, text):
         """synthesizes the given text to speech"""
-        logger.info('-> now saying something')
+        logger.info('now saying something')
         if self.sound_active == True:
             return
 
@@ -102,7 +104,7 @@ class Sound(object):
 
     def adjust_volume(self, value):
         """adjusts the audio volume by the given value (0-100%)"""
-        print '-> adjusting volume'
+        print 'adjusting volume'
         volume_command = str('amixer set PCM -- ' + str(value) + '%')
         os.system(volume_command)
         self.play_mp3_file(project_path + '/sounds/blop.mp3')
@@ -128,7 +130,7 @@ class Sound(object):
 
         self.sound_active = True
 
-        print '-> now playing internet radio'
+        print 'now playing internet radio'
         # set output high in order to turn on amplifier
         GPIO.output(amp_switch_pin, 1)
         time.sleep(0.3)
@@ -144,6 +146,6 @@ class Sound(object):
         time.sleep(0.5)
         # set ouput low in order to turn off amplifier
         GPIO.output(amp_switch_pin, 0)
-        print '-> internet radio alarm turned off'
+        print 'internet radio alarm turned off'
         self.sound_active = False
         self.stop_sound = False
