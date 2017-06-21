@@ -1,9 +1,9 @@
-$(function() { 
+$(function() {
     $(window).load(function() {
         loadDoc();
     });
 
-    
+
     //---------------------------------------------------
     // Read XML File
     //---------------------------------------------------
@@ -17,8 +17,11 @@ $(function() {
       xhttp.open("GET", "./data.xml", true);
       xhttp.send();
     };
+    
+    var initializing = false;
 
     function readXmlFile(xml) {
+        initializing = true;
         console.log( xml );
         var xmlDoc = xml.responseXML;
         //var x = xmlDoc.getElementsByTagName("data");
@@ -31,57 +34,57 @@ $(function() {
         var alarm_active = xmlDoc.getElementsByTagName('alarm_active')[0].childNodes[0].nodeValue;
         var individual_message = xmlDoc.getElementsByTagName('individual_message')[0].childNodes[0].nodeValue;
         var individual_message_text = xmlDoc.getElementsByTagName('text')[0].childNodes[0].nodeValue;
-        
+
         var alarm_active = (alarm_active == "1"); //convert to bool
         var individual_message = (individual_message == "1"); //convert to bool
         var days_array = days.split(",");
         var hour_value = alarm_time.substr(0, alarm_time.indexOf(':'));
         var minute_value = alarm_time.substr(alarm_time.indexOf(':')+1, 2);
-                
-        // set values
-        $("#slider").slider("option", "value", volume); 
 
-        $('#hour_knob').val(hour_value).trigger('change');   
-        //$('#hour_knob').change(hour_value);
+        // set gui elements according to read in values
+        $("#slider").slider("option", "value", volume);
+
+        $('#hour_knob').val(hour_value).trigger('change');
         $('#minute_knob').val(minute_value).trigger('change');
-                
+
         $('#cb_alarm_active').prop("checked", alarm_active);
-        $("#cb_alarm_active").change(); // to set the elements of class "hide" visible or not
-        
+        showOrHideAlarmActiveClass();
+
         $("#sm_content").val(content).prop('selected', true);
         $("#sm_content").selectmenu( "refresh" ); //refreshes the button
         $("#sm_content").selectmenu('option', 'change').call($("#sm_content")); //call change trigger manually
         $("#txt_content_podcast_url").val(content_podcast_url);
         $("#txt_content_stream_url").val(content_stream_url);
-        
+
         $("#cb_individual_message").prop("checked", individual_message);
-        $("#cb_individual_message").change();
+        showOrHideIndividualMessage();
         $("#txt_individual_message").val(individual_message_text);
-        
+
         $('.cb_days').each(function () {
             var value = $(this).val();
             if(days_array.indexOf(String(value)) != -1)
             {
                 $(this).prop("checked", true);
-            }   
+            }
         });
-        $(".cb_days").button("refresh"); 
-        
+        $(".cb_days").button("refresh");
+
+        initializing = false;
     };
-    
-    
+
+
     //---------------------------------------------------
     // Clock and Date
     //---------------------------------------------------
     // Create two variable with the names of the months and days in an array
-    var monthNames = [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ]; 
+    var monthNames = [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ];
     var dayNames= ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]
 
     // Create a newDate() object
     var newDate = new Date();
     // Extract the current date from Date object
     newDate.setDate(newDate.getDate());
-    // Output the day, date, month and year    
+    // Output the day, date, month and year
     $('#time_date').html(dayNames[newDate.getDay()] + " " + newDate.getDate() + ' ' + monthNames[newDate.getMonth()] + ' ' + newDate.getFullYear());
 
     setInterval( function() {
@@ -104,73 +107,79 @@ $(function() {
         // Add a leading zero to the hours value
         $("#time_hours").html(( hours < 10 ? "0" : "" ) + hours);
         }, 1000);
-        
-    
+
+
     //---------------------------------------------------
     // Checkboxes
     //---------------------------------------------------
     $( "input[type='checkbox']" ).checkboxradio(); //use jquery ui
-    
+
     $('#cb_alarm_active').change(function() {
-        var value;
-        if($(this).is(":checked")) 
+        showOrHideAlarmActiveClass();
+        var value = $(this).is(":checked") ? 1 : 0;
+        $.post("index.html",
         {
-            value = 1;
+          alarm_active: value,
+        });
+    });
+    
+    // show or hide gui elements according if alarm_active is checked
+    function showOrHideAlarmActiveClass()
+    {
+        if($('#cb_alarm_active').is(":checked"))
+        {
             $(".class_hide").show("slow");
         }
         else
         {
-            value = 0;
             $(".class_hide").hide("slow");
         }
-        
-        $.post("index.html",
-        {
-          alarm_active: value,
-        });    
-    });
-    
+    };
+
     $('.cb_days').change(function() {
-        
+
         var sList = "";
         $('.cb_days').each(function () {
             sList += $(this).is(":checked") ? $(this).val() + "," : "";
         });
-        
+
         if(sList.length >0)
         {
             sList = sList.substr(0, sList.length-1)
         }
-        
+
         $.post("index.html",
         {
           days: sList,
-        });    
+        });
+    });
+
+    $('#cb_individual_message').change(function() {
+        showOrHideIndividualMessage();
+        var value = $(this).is(":checked") ? 1 : 0;
+        $.post("index.html",
+        {
+          individual_message: value,
+        });
     });
     
-    $('#cb_individual_message').change(function() {
-        var value;
-        if($(this).is(":checked")) 
+    // show or hide gui elements according if individual_message is checked
+    function showOrHideIndividualMessage()
+    {
+        if($('#cb_individual_message').is(":checked"))
         {
-            value = 1;
             $("#txt_individual_message").show("fast");
         }
         else
         {
-            value = 0;
             $("#txt_individual_message").hide("fast");
         }
-        
-        $.post("index.html",
-        {
-          individual_message: value,
-        });    
-    });
-    
-    
+    };
+
+
     //---------------------------------------------------
     // Knob functions
-    //---------------------------------------------------    
+    //---------------------------------------------------
     $(".knob").knob({
         change : function (value) {
              console.log("change : " + value);
@@ -191,7 +200,7 @@ $(function() {
         release : function (value) {
             var type = this.$[0].id;
             value = String(value);
-            
+
             if(value.length == 1)
             {
                 value = '0' + value;
@@ -208,11 +217,15 @@ $(function() {
             }
 
             console.log("new alarm time: " + value);
-            $.post("index.html",
-            {
-              alarm_time: value,
-            });  
             
+            if (!initializing)
+            {
+                $.post("index.html",
+                {
+                  alarm_time: value,
+                });
+            }
+
         },
         cancel : function () {
             //console.log("cancel : ", this);
@@ -257,7 +270,7 @@ $(function() {
         },
     });
 
-    
+
     //---------------------------------------------------
     // Slider
     //---------------------------------------------------
@@ -272,19 +285,23 @@ $(function() {
             var norm_val = 50 + ui.value/2;
             console.log("volume value : " + norm_val);
             $("#volume_text").text(ui.value);
-            $.post("index.html",
-                {
-                  volume: norm_val,
-                });
+            
+            if(!initializing)
+            {
+                $.post("index.html",
+                    {
+                      volume: norm_val,
+                    });
+            }
         },
-        
+
         slide : function (event, ui)
         {
-            //refresh the text 
+            //refresh the text
             $("#volume_text").text(ui.value);
         }
     });
-      
+
     //---------------------------------------------------
     // content selection
     //---------------------------------------------------
@@ -297,39 +314,39 @@ $(function() {
                   content: ui.item.value,
                 });
         },
-        
+
         change: function( event, ui ) {
             $( ".content_options" ).hide();
             var sel_content = $("#sm_content")[0].value;
             if(sel_content == "mp3")
             {
-                $("#content_mp3_list").show();       
+                $("#content_mp3_list").show();
             }
             else if (sel_content == "podcast")
             {
-                $("#content_podcast_url").show();      
+                $("#content_podcast_url").show();
             }
             else if (sel_content == "stream")
             {
-                $("#content_stream_url").show();   
+                $("#content_stream_url").show();
             }
         }
     });
-    
-    
+
+
     //---------------------------------------------------
     // text fields
     //---------------------------------------------------
     $(".class_input_text").focusout(function(){
         console.log("Textfeld " + this.id + "changed to: \"" + this.value + "\"");
-        
+
         if(this.id == "txt_individual_message")
         {
             $.post("index.html",
                 {
                   text: this.value,
                 });
-        } 
+        }
         if(this.id == "txt_content_stream_url")
         {
             $.post("index.html",
@@ -345,19 +362,19 @@ $(function() {
                 });
         }
     });
-    
-    
+
+
     //---------------------------------------------------
     // list box
     //---------------------------------------------------
     $('select#planets').listbox(); //use listbox class
-    
-    
+
+
     //---------------------------------------------------
     // buttons
     //---------------------------------------------------
     $( "input[type='button']" ).button(); //use jquery ui
-    
+
     $('#btn_test_alarm').click(function() {
         $.post("index.html",
                 {
@@ -367,7 +384,7 @@ $(function() {
 
     $('#btn_add_mpr').change(function(event, ui ) {
         var dateien = event.target.files; // FileList objekt
- 
+
         // erste Datei auswählen (wichtig, weil IMMER ein FileList Objekt generiert wird)
         var uploadDatei = dateien[0];
 
@@ -386,38 +403,37 @@ $(function() {
           senddata.fileData = theFileData.target.result; // Ergebnis vom FileReader auslesen
         }
     });
-    
+
     /*
     $('#btn_add_mpr').addEventListener('change', dateiupload, false);
-    
+
     function dateiupload(evt) {
     var dateien = evt.target.files; // FileList objekt
- 
+
     // erste Datei auswählen (wichtig, weil IMMER ein FileList Objekt generiert wird)
     var uploadDatei = dateien[0];
- 
+
     // Ein Objekt um Dateien einzulesen
     var reader = new FileReader();
- 
+
     var senddata = new Object();
     // Auslesen der Datei-Metadaten
     senddata.name = uploadDatei.name;
     senddata.date = uploadDatei.lastModified;
     senddata.size = uploadDatei.size;
     senddata.type = uploadDatei.type;
- 
+
     // Wenn der Dateiinhalt ausgelesen wurde...
     reader.onload = function(theFileData) {
       senddata.fileData = theFileData.target.result; // Ergebnis vom FileReader auslesen
- 
+
       //Code für AJAX-Request hier einfügen
-      
+
     }
- 
+
     // Die Datei einlesen und in eine Data-URL konvertieren
     reader.readAsDataURL(uploadDatei);
   }
     */
-    
-}); 
-       
+
+});
