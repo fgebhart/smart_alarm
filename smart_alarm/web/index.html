@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
+        <meta charset="utf-8"/>
         <title>IoT Clock</title>
 
         <!--[if IE]><script type="text/javascript" src="dist/excanvas.js"></script><![endif]-->
@@ -16,8 +17,8 @@
         <script src="libs/jquery.ui.touch-punch.js"></script>
         
         <!-- list box : https://github.com/ikalnytskyi/listbox.js-->
-        <link href="libs/listbox.css" rel="stylesheet">
-        <script src="libs/listbox.js"></script>
+        <!-- <link href="libs/listbox.css" rel="stylesheet">
+        <script src="libs/listbox.js"></script> -->
         
         <!-- knob : https://github.com/aterrien/jQuery-Knob-->
         <script src="libs/jquery.knob.js"></script>
@@ -107,22 +108,12 @@
             </div>
             
             <div id="content_mp3_list" class="content_options">
-                <!-- 
-                <select id="planets" multiple>
-                  <option>Alderaan</option>
-                  <option>Corellia</option>
-                  <option>Endor</option>
-                  <option>Kashyyyk</option>
-                  <option>Mustafar</option>
-                  <option selected>Naboo</option>
-                  <option>Nar Shaddaa</option>
-                  <option selected>Tatooine</option>
-                  <option>Yavin</option>
-                </select>
-                -->
+                 
+                <select id="sel_mp3_list" multiple style="width:300px">
+                </select>            
                 
-                <input type="file" id="btn_add_mpr" value="Add">
-                <input type="button" id="btn_del_mpr" value="Del">
+                <input type="file" id="btn_add_mp3_list" value="Add"  style="width:140px">
+                <input type="button" id="btn_del_mp3_list" value="Del">
             </div>
         </div>
         

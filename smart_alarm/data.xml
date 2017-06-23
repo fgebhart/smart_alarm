@@ -1,8 +1,8 @@
-<?xml version="1.0" ?><data>
+<data>
 
-    <alarm_time>07:15</alarm_time>
+    <alarm_time>07:22</alarm_time>
 
-    <test_alarm>0</test_alarm>
+    <test_alarm>1</test_alarm>
 
     <last_modified>19:59:34</last_modified>
 
@@ -16,10 +16,12 @@
 
     <alarm_active>1</alarm_active>
 
-    <individual_message>1</individual_message>
+    <individual_message>0</individual_message>
 
     <text>you better get up now!</text>
 
-    <volume>92.5</volume>
+    <volume>100</volume>
 
+    <mp3_files>
+    </mp3_files>
 </data>

@@ -1,4 +1,8 @@
-from xml.dom import minidom
+import xml.etree.cElementTree as ET
+import copy
+
+from os import listdir
+from os.path import isfile, join
 
 
 class Xml_data(object):
@@ -9,42 +13,44 @@ class Xml_data(object):
 
     def __init__(self, xml_file):
         self.xml_path = xml_file
-        self.xmldoc = minidom.parse(self.xml_path)
+        self.xmldoc = ET.parse(self.xml_path)
+        self.readFileNamesInMusicDirectory()
 
     def alarm_active(self):
-        return self.xmldoc.getElementsByTagName('alarm_active')[0].childNodes[0].data
+        return self.xmldoc.find('alarm_active').text
 
     def alarm_time(self):
-        return self.xmldoc.getElementsByTagName('alarm_time')[0].childNodes[0].data
+        return self.xmldoc.find('alarm_time').text
 
     def content(self):
-        return self.xmldoc.getElementsByTagName('content')[0].childNodes[0].data
+        return self.xmldoc.find('content').text
 
     def alarm_days(self):
-        return self.xmldoc.getElementsByTagName('days')[0].childNodes[0].data
+        return self.xmldoc.find('days').text
 
     def individual_message_active(self):
-        return self.xmldoc.getElementsByTagName('individual_message')[0].childNodes[0].data
+        return self.xmldoc.find('individual_message').text
 
     def individual_message_text(self):
-        return self.xmldoc.getElementsByTagName('text')[0].childNodes[0].data
+        return self.xmldoc.find('text').text
 
     def volume(self):
-        return self.xmldoc.getElementsByTagName('volume')[0].childNodes[0].data
+        return self.xmldoc.find('volume').text
 
     def content_podcast_url(self):
-        return self.xmldoc.getElementsByTagName('content_podcast_url')[0].childNodes[0].data
+        return self.xmldoc.find('content_podcast_url').text
 
     def content_stream_url(self):
-        return self.xmldoc.getElementsByTagName('content_stream_url')[0].childNodes[0].data
+        return self.xmldoc.find('content_stream_url').text
 
     def test_alarm(self):
-        return self.xmldoc.getElementsByTagName('test_alarm')[0].childNodes[0].data
+        return self.xmldoc.find('test_alarm').text
 
     def read_data(self):
         """reads the data.xml file and returns the data of the whole
         file as a string. Used for detecting changes in the file."""
-        self.xmldoc = minidom.parse (self.xml_path)
+        self.xmldoc = ET.parse(self.xml_path)
+        self.readFileNamesInMusicDirectory()
 
         with open(self.xml_path) as infile:
             data = infile.read()
@@ -53,7 +59,28 @@ class Xml_data(object):
     def changeValue(self, element_name, value):
         """Allows editing the xml-file, by passing the elements-
         name and the desired value."""
-        xmldoc = minidom.parse(self.xml_path)
-        xmldoc.getElementsByTagName(element_name)[0].childNodes[0].data = value
-        with open(self.xml_path, "wb") as f:
-            xmldoc.writexml(f)
+        self.xmldoc.find(element_name).text = value
+        self.writeFile()
+
+    def writeFile(self):
+        self.xmldoc.write(self.xml_path)
+
+    def readFileNamesInMusicDirectory(self):
+        mp3_tracks_node = self.xmldoc.find('mp3_files')
+        mp3_tracks_node_old = copy.deepcopy(mp3_tracks_node)
+        mp3_tracks_node.clear()
+        fileNames = [f for f in listdir('./music') if isfile(join('./music', f))]
+        for file in fileNames:
+            node = ET.SubElement(mp3_tracks_node, 'track')
+            node.text = file
+
+        if not elements_equal(mp3_tracks_node, mp3_tracks_node_old):
+            self.xmldoc.write(self.xml_path)
+
+def elements_equal(e1, e2):
+    if e1.tag != e2.tag: return False
+    if e1.text != e2.text: return False
+    if e1.tail != e2.tail: return False
+    if e1.attrib != e2.attrib: return False
+    if len(e1) != len(e2): return False
+    return all(elements_equal(c1, c2) for c1, c2 in zip(e1, e2))

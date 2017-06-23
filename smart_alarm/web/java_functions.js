@@ -3,6 +3,15 @@ $(function() {
         loadDoc();
     });
 
+    // Global Variables
+    var initializing = false;
+    var mp3Array = [];
+    var xmlDoc = null;
+    
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
 
     //---------------------------------------------------
     // Read XML File
@@ -17,14 +26,11 @@ $(function() {
       xhttp.open("GET", "./data.xml", true);
       xhttp.send();
     };
-    
-    var initializing = false;
+
 
     function readXmlFile(xml) {
         initializing = true;
-        console.log( xml );
-        var xmlDoc = xml.responseXML;
-        //var x = xmlDoc.getElementsByTagName("data");
+        xmlDoc = xml.responseXML;
         var content = xmlDoc.getElementsByTagName('content')[0].childNodes[0].nodeValue;
         var content_stream_url = xmlDoc.getElementsByTagName('content_stream_url')[0].childNodes[0].nodeValue;
         var content_podcast_url = xmlDoc.getElementsByTagName('content_podcast_url')[0].childNodes[0].nodeValue;
@@ -68,7 +74,21 @@ $(function() {
             }
         });
         $(".cb_days").button("refresh");
-
+    
+        // fill mp3 array
+        var mp3Files = xmlDoc.getElementsByTagName("mp3_files")[0].childNodes;
+        mp3Array = [];
+        for (var i = 0; i < mp3Files.length; i++)
+        {
+            mp3Array.push(mp3Files[i].textContent);
+        }
+       
+        // refresh mp3 list GUI
+        $('#sel_mp3_list').find("option").remove();
+        for (var index in mp3Array) {
+            $("#sel_mp3_list").append("<option value=\"" + index + "\">" + mp3Array[index] + "</option>");
+        }
+        
         initializing = false;
     };
 
@@ -182,7 +202,7 @@ $(function() {
     //---------------------------------------------------
     $(".knob").knob({
         change : function (value) {
-             console.log("change : " + value);
+            //console.log("change : " + value);
             var type = this.$[0].id;
             value = String(Math.round(value));
             if(value.length == 1)
@@ -216,10 +236,9 @@ $(function() {
                 value = $("#hour_text").text() + ':' + value;
             }
 
-            console.log("new alarm time: " + value);
-            
             if (!initializing)
             {
+                console.log("new alarm time: " + value);
                 $.post("index.html",
                 {
                   alarm_time: value,
@@ -283,11 +302,11 @@ $(function() {
         {
             //save new value
             var norm_val = 50 + ui.value/2;
-            console.log("volume value : " + norm_val);
             $("#volume_text").text(ui.value);
             
             if(!initializing)
             {
+                console.log("volume value : " + norm_val);
                 $.post("index.html",
                     {
                       volume: norm_val,
@@ -365,9 +384,49 @@ $(function() {
 
 
     //---------------------------------------------------
-    // list box
+    // MP3 list box
     //---------------------------------------------------
-    $('select#planets').listbox(); //use listbox class
+    $('#btn_del_mp3_list').click(async function() {
+        // remove one array element with splice
+        var index = $("#sel_mp3_list")[0].value;
+        console.log("delete" + mp3Array[index])
+        //mp3Array.splice(index, 1)
+        $.post("index.html",
+        {
+          deleteMp3File: mp3Array[index],
+        });
+        await sleep(1000);
+        loadDoc();
+    });
+    
+    $('#btn_add_mp3_list').change(function(event, ui ) {
+        var uploadedFile = event.target.files[0];
+        
+        if(uploadedFile.size > 25000000)
+        {
+            alert("The size of the mp3 file has to be less than 25 MB.");
+            return;
+        }
+        
+        var senddata = new Object();
+        senddata.name = uploadedFile.name;
+        senddata.date = uploadedFile.lastModified;
+        senddata.size = uploadedFile.size;
+        senddata.type = uploadedFile.type;
+
+        var reader = new FileReader();
+        reader.onload = async function(){
+            senddata.fileData = reader.result;
+            $.post("index.html",
+                {
+                  uploadMp3File: senddata,
+                });
+            await sleep(1000);
+            loadDoc();
+        };
+        reader.readAsDataURL(uploadedFile);
+        
+    });
 
 
     //---------------------------------------------------
@@ -381,59 +440,4 @@ $(function() {
                   test_alarm: '1',
                 });
     });
-
-    $('#btn_add_mpr').change(function(event, ui ) {
-        var dateien = event.target.files; // FileList objekt
-
-        // erste Datei auswählen (wichtig, weil IMMER ein FileList Objekt generiert wird)
-        var uploadDatei = dateien[0];
-
-        // Ein Objekt um Dateien einzulesen
-        var reader = new FileReader();
-
-        var senddata = new Object();
-        // Auslesen der Datei-Metadaten
-        senddata.name = uploadDatei.name;
-        senddata.date = uploadDatei.lastModified;
-        senddata.size = uploadDatei.size;
-        senddata.type = uploadDatei.type;
-
-        // Wenn der Dateiinhalt ausgelesen wurde...
-        reader.onload = function(theFileData) {
-          senddata.fileData = theFileData.target.result; // Ergebnis vom FileReader auslesen
-        }
-    });
-
-    /*
-    $('#btn_add_mpr').addEventListener('change', dateiupload, false);
-
-    function dateiupload(evt) {
-    var dateien = evt.target.files; // FileList objekt
-
-    // erste Datei auswählen (wichtig, weil IMMER ein FileList Objekt generiert wird)
-    var uploadDatei = dateien[0];
-
-    // Ein Objekt um Dateien einzulesen
-    var reader = new FileReader();
-
-    var senddata = new Object();
-    // Auslesen der Datei-Metadaten
-    senddata.name = uploadDatei.name;
-    senddata.date = uploadDatei.lastModified;
-    senddata.size = uploadDatei.size;
-    senddata.type = uploadDatei.type;
-
-    // Wenn der Dateiinhalt ausgelesen wurde...
-    reader.onload = function(theFileData) {
-      senddata.fileData = theFileData.target.result; // Ergebnis vom FileReader auslesen
-
-      //Code für AJAX-Request hier einfügen
-
-    }
-
-    // Die Datei einlesen und in eine Data-URL konvertieren
-    reader.readAsDataURL(uploadDatei);
-  }
-    */
-
 });
