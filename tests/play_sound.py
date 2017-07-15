@@ -4,6 +4,7 @@ import RPi.GPIO as GPIO
 # set pin for amplifier switch
 amp_switch_pin = 5
 
+GPIO.setwarnings(False)
 # configure RPI GPIO
 GPIO.setmode(GPIO.BCM)
 # set pin to output
@@ -21,10 +22,8 @@ def play_mp3_file(mp3_file):
     while pygame.mixer.music.get_busy() == True:
         continue
     # set ouput low in order to turn off amplifier
-    GPIO.output(amp_switch_pin, 0)
 
 
-play_mp3_file("/home/pi/smart_alarm/smart_alarm/music/Festival.mp3")
+play_mp3_file("/home/pi/smart_alarm/tests/example.mp3")
 
-GPIO.cleanup()
-
+GPIO.output(amp_switch_pin, 0)
