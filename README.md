@@ -1,8 +1,7 @@
 # IoT Smart Alarm Clock
 Welcome to the _open source alarm clock_ project **smart_alarm**!
 
-<img src="https://github.com/fgebhart/smart_alarm/blob/master/instructions/pics/final_in_case.JPG" width="300">
-
+<img src="http://i.imgur.com/erhxXFE.jpg" width="400">
 
 ***Update: amp_switch_pin moved to GPIO 5, please consider for your wiring***
 
@@ -30,7 +29,7 @@ Even though we wanted to leave a lot of space for your ideas and improvements, t
 
 ### General Usage
 
-If you want to build and code your own _smart_alarm_ please visit the [smart_alarm wiki](https://github.com/fgebhart/smart_alarm/wiki) and follow the steps described in the [installation guide](https://github.com/fgebhart/smart_alarm/wiki/Installation-Guide).
+If you want to build and code your own _smart_alarm_ please visit the [smart_alarm wiki](https://github.com/fgebhart/smart_alarm/wiki) and follow the [steps by steps description](https://github.com/fgebhart/smart_alarm/wiki/1.-Set-up-Raspberry-Pi-Zero).
 
 Clone the code of this repository to the home folder of your computer / Raspberry Pi Zero simply by typing:
 
