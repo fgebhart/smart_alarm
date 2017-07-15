@@ -1,8 +1,8 @@
 <data>
 
-    <alarm_time>07:22</alarm_time>
+    <alarm_time>07:00</alarm_time>
 
-    <test_alarm>1</test_alarm>
+    <test_alarm>0</test_alarm>
 
     <last_modified>19:59:34</last_modified>
 
@@ -12,7 +12,7 @@
     
     <content_stream_url>stream_url awe</content_stream_url>
 
-    <days>1,2,3,4,5,0</days>
+    <days>1,2,3,4,5</days>
 
     <alarm_active>1</alarm_active>
 
@@ -22,6 +22,6 @@
 
     <volume>100</volume>
 
-    <mp3_files>
-    </mp3_files>
+    <mp3_files><track>Space_Walk.mp3</track></mp3_files>
+
 </data>

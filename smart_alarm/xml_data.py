@@ -1,9 +1,13 @@
 import xml.etree.cElementTree as ET
 import copy
+import os
 
 from os import listdir
 from os.path import isfile, join
 
+
+# read environmental variable for project path
+project_path = os.environ['smart_alarm_path']
 
 class Xml_data(object):
     """
@@ -69,7 +73,7 @@ class Xml_data(object):
         mp3_tracks_node = self.xmldoc.find('mp3_files')
         mp3_tracks_node_old = copy.deepcopy(mp3_tracks_node)
         mp3_tracks_node.clear()
-        fileNames = [f for f in listdir('./music') if isfile(join('./music', f))]
+        fileNames = [f for f in listdir(project_path + '/music') if isfile(join(project_path + '/music', f))]
         for file in fileNames:
             node = ET.SubElement(mp3_tracks_node, 'track')
             node.text = file
