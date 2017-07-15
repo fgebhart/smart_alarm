@@ -62,7 +62,7 @@ def button_callback(channel):
     start_timer = time.time()
     timer = 0
 
-    if GPIO.input(button_input_pin) and sound.sound_active is False:  # if port 24 == 1
+    if GPIO.input(button_input_pin) and sound.sound_active is False and led.leds_active is False:  # if port 24 == 1
         while GPIO.input(button_input_pin) and timer < 3:
             loop_timer = time.time()
             timer = loop_timer - start_timer
@@ -75,7 +75,11 @@ def button_callback(channel):
             logger.info('button pressed for > 3 sec')
             shutdown_pi()
 
-    sound.stopping_sound()
+    elif GPIO.input(button_input_pin):
+        if sound.sound_active is True:
+            sound.stopping_sound()
+        elif led.leds_active is True:
+            led.stopping_leds()
 
 
 def download_file(link_to_file):
@@ -273,15 +277,19 @@ def tell_when_button_pressed(alarm_active, alarm_days, alarm_time):
 def run_alarm():
     """main function to run the alarm, based
     on the configured settings in data.xml"""
-    logger.info('---> now starting alarm')
+    logger.info('#### NOW RUNNING ALARM #####')
+
+    # display the current time
+    display.show_time(now)
+    # write content to display
+    display.write()
+
+    if check_if_smartalarm_is_running_LEDs():
+        # starts led light show
+        led.wake_up_lightshow(time_for_leds)
 
     # check if news or audio (offline mp3) is programmed
     if xml_data.content() == 'podcast':
-
-        # display the current time
-        display.show_time(now)
-        # write content to display
-        display.write()
 
         # set the updated individual wake-up message in order to play it
         individual_message = set_ind_msg(xml_data.individual_message_active(), xml_data.individual_message_text())
@@ -313,11 +321,6 @@ def run_alarm():
     elif xml_data.content() == 'mp3':
         # since music is preferred, play the offline mp3 files
 
-        # display the current time
-        display.show_time(now)
-        # write content to display
-        display.write()
-
         # set the updated individual wake-up message in order to play it
         individual_message = set_ind_msg(xml_data.individual_message_active(), xml_data.individual_message_text())
 
@@ -329,9 +332,6 @@ def run_alarm():
 
     elif xml_data.content() == 'stream':
         # since internet-radio is preferred, play the online stream
-        # display the current time
-        # write content to display
-        display.write()
 
         # set the updated individual wake-up message in order to play it
         individual_message = set_ind_msg(xml_data.individual_message_active(), xml_data.individual_message_text())
@@ -341,6 +341,9 @@ def run_alarm():
 
         c = threading.Thread(target=sound.play_online_stream, args=())
         c.start()
+
+    # at the end of the alarm function reset the stop variable
+    led.stop_led = False
 
 
 def check_if_podcast_url_correct(url):
@@ -393,9 +396,12 @@ def shutdown_pi():
 
         if shutdown:
             logger.debug('manually shutting down now')
-            q = threading.Thread(target=display.shutdown, args=(6,))
+            q = threading.Thread(target=display.shutdown, args=(3,))
             q.start()
             sound.say('O K. Bye!')
+            display.clear_class()
+            display.scroll('    ', 4)
+            display.write()
             print '... now shutting down ...'
             os.system('sudo poweroff')
 
@@ -415,6 +421,20 @@ def change_stream_url(stream_url):
     os.system('mpc clear')
     string_command_add_url = 'mpc add ' + str(stream_url)
     os.system(string_command_add_url)
+
+
+def check_if_smartalarm_is_running_LEDs():
+    """checks if this smart alarm version is running LEDs by
+    looking for the file APA102_Pi/colorschemes.py. If it
+    is there, the operating smart alarm mostlikely is running
+    with LEDs"""
+    logger.info('checking if I have LEDs installed...')
+    if os.path.isfile('/home/pi/APA102_Pi/colorschemes.py'):
+        logger.info('...yeah I\'m flashy')
+        return True
+    else:
+        logger.info('...oh, sadly not')
+        return False
 
 
 print '-> now initializing variables...'
@@ -454,6 +474,10 @@ if __name__ == '__main__':
     # set pin for amplifier switch
     amp_switch_pin = 5
 
+    # define time for led light show in seconds, needs to be >= 10,
+    # otherwise the leds functions will be skipped due to while functions
+    time_for_leds = 300
+
     # turn off GPIO warnings
     GPIO.setwarnings(False)
     # configure RPI GPIO. Make sure to use 1k ohms resistor to protect input pin
@@ -468,6 +492,10 @@ if __name__ == '__main__':
     y = threading.Thread(target=display.big_stars, args=(7,))
     y.start()
 
+    # one quick led rainbow
+    v = threading.Thread(target=led.rainbow, args=(10,1,))
+    v.start()
+
     # say welcome message
     welcome_message = 'What is my purpose?'
     sound.say(welcome_message)
@@ -480,7 +508,7 @@ if __name__ == '__main__':
 
     # set flag for just played alarm and just checked wifi
     just_played_alarm = False
-    just_cheked_wifi = False
+    just_checked_wifi = False
 
     # set loop counter to one (needed to calculate mean of 10 iterations for the display brightness control)
     loop_counter = 1
@@ -511,13 +539,14 @@ if __name__ == '__main__':
 
             # check if xml file was updated. If so, update the variables
             if xml_file != new_xml_file:
-                logger.info('-> data.xml file changed - now update settings')
+                logger.info('data.xml file changed - now update settings')
 
                 # check if test alarm was pressed
                 if xml_data.test_alarm() == '1':
-                    print 'now running testalarm'
+                    logger.info('running test alarm')
                     xml_data.changeValue('test_alarm', '0')
-                    run_alarm()
+                    q = threading.Thread(target=run_alarm, args=())
+                    q.start()
                 else:
                     sound.adjust_volume(xml_data.volume())
 
@@ -531,18 +560,18 @@ if __name__ == '__main__':
                 if today_nr in xml_data.alarm_days():      # check if current day is programmed to alarm
                     # alarm is set to go off today, calculate the remaining time to alarm
 
-                    if time_to_alarm == 1 and just_cheked_wifi == False:
-                        just_cheked_wifi = True
-                        logger.info('-> now checking internet connection and restart wlan0 if needed')
+                    if time_to_alarm % 5 == 0 and just_checked_wifi == False :      # checks every 5 min for wifi
+                        just_checked_wifi = True
+                        logger.info('checking internet connection and restart wlan0 if needed')
                         logger.debug(str(os.system('sudo ifup wlan0')) + ' zero means wlan0 is still on.')
-
-                    if time_to_alarm != 1:
-                        just_cheked_wifi = False
+                    elif time_to_alarm % 5 != 0:
+                        just_checked_wifi = False
 
                     if time_to_alarm == 0:
-                        logger.info('---> now starting alarm')
-
-                        run_alarm()
+                        logger.info('### running alarm now ###')
+                        ##### RUN ALARM HERE! #####
+                        q = threading.Thread(target=run_alarm, args=())
+                        q.start()
                         just_played_alarm = True
 
             if time_to_alarm != 0:

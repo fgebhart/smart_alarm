@@ -37,7 +37,6 @@ class LEDs(object):
         self.stop_led = False
         self.leds_active = False
 
-
     def stopping_leds(self):
         """stops leds when button is pressed"""
         logger.info('leds are being stopped')
@@ -49,7 +48,6 @@ class LEDs(object):
         if self.stop_led == True:
             logger.info('skipping led rainbow, since button was pressed')
             return
-
         logger.info('running led rainbow')
         self.leds_active = True
         clock = 0
@@ -61,13 +59,11 @@ class LEDs(object):
             clock = time.time() - start
         self.leds_active = False
 
-
     def white_blinking(self, duration_time):
         """most bright white blinking, finally you should wake up"""
         if self.stop_led == True:
             logger.info('skipping led white blinking, since button was pressed')
             return
-
         logger.info('running led white blinking')
         self.leds_active = True
         clock = 0
@@ -79,7 +75,6 @@ class LEDs(object):
             time.sleep(0.05)
             clock = time.time() - start
         self.leds_active = False
-
 
     def wake_up_lightshow(self, duration_time):
         """combination of erlier functions, adjust when needed"""
