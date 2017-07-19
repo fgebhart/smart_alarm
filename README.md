@@ -1,6 +1,6 @@
 # Welcome to "_Smala_" - the IoT Smart Alarm Clock
 
-<img src="http://i.imgur.com/erhxXFE.jpg" width="400">
+<img src="http://i.imgur.com/xu7nmMB.png">
 
 This smart_alarm project provides an easy to build and program Internet of Things alarm clock. We would love to see you build your own version of it. It is designed, such that you can adapt your needs and improve it easily. Let us know if you want to contribute to this repository or simply want to share your ideas. All kinds of support is appreciated. 
 
@@ -30,9 +30,12 @@ If you want to 3D-print your case, please follow **[this link to thingiverse](ht
 We recently released the **v2 version** which includes several new features:
 
 * manage your local mp3 files via the inbuild webinterface
-* flashy RGB LEDs - for a smoother wakeup
 * imrproved 3d printable case
 * bugfixes and code improvements
+    ... and for sure we proudly present:
+* flashy RGB LEDs - for a smoother wakeup
+
+<img src="http://i.imgur.com/PB6ez6K.jpg" width="300" border="100">
 
 The ***v1 version*** was already born with the following features:
 
