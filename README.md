@@ -1,12 +1,12 @@
-# Welcome to "_smala_" - the IoT Smart Alarm Clock
+# Welcome to "_Smala_" - the IoT Smart Alarm Clock
 
 <img src="http://i.imgur.com/erhxXFE.jpg" width="400">
 
 This smart_alarm project provides an easy to build and program Internet of Things alarm clock. We would love to see you build your own version of it. It is designed, such that you can adapt your needs and improve it easily. Let us know if you want to contribute to this repository or simply want to share your ideas. All kinds of support is appreciated. 
 
-### smala_v2 Release
+# Smala_v2 Release
 
-The v2 version includes several new features:
+The **v2 version** includes several new features:
 
 * manage your local mp3 files via the inbuild webinterface
 * flashy RGB LEDs - for a smoother wakeup
@@ -30,10 +30,9 @@ The v1 version was already born with the following features:
 * 3W speaker definitely wakes you up
 
 
-[### Instructions - Wiki](https://github.com/fgebhart/smart_alarm/wiki)
+# Instructions - Wiki
 
-
-If you want to build and code your own _smart_alarm_ please visit the [smart_alarm wiki](https://github.com/fgebhart/smart_alarm/wiki) and follow the [steps by steps description](https://github.com/fgebhart/smart_alarm/wiki/1.-Set-up-Raspberry-Pi-Zero).
+If you want to build and code your own _smart_alarm_ please visit the [Smala Wiki](https://github.com/fgebhart/smart_alarm/wiki)
 
 Or simply clone this repository to your computer / Raspberry Pi Zero:
 
@@ -54,11 +53,6 @@ and the [project page on hackaday](https://hackaday.io/project/19230-iot-smart-a
 
 ### Thanks 
 
-We also would like to say thanks to
-<a href="https://github.com/aterrien">Anthony Terrien</a> for the <a href="https://github.com/aterrien/jQuery-Knob">jQuery Knob Controls</a>!
-
-<a href="https://github.com/ikalnytskyi">Ihor Kalnytskyi</a> for the <a href="https://github.com/ikalnytskyi/listbox.js">jQuery List Box</a>!
-
-And also to <a href="http://touchpunch.furf.com/">jQuery UI Touch Punch</a> and <a href="https://jqueryui.com/">jQeury UI</a>.
+We also would like to say thanks to <a href="https://github.com/aterrien">Anthony Terrien</a> for the <a href="https://github.com/aterrien/jQuery-Knob">jQuery Knob Controls</a>! <a href="https://github.com/ikalnytskyi">Ihor Kalnytskyi</a> for the <a href="https://github.com/ikalnytskyi/listbox.js">jQuery List Box</a>! And also to <a href="http://touchpunch.furf.com/">jQuery UI Touch Punch</a> and <a href="https://jqueryui.com/">jQeury UI</a>.
 
 
