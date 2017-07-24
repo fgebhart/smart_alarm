@@ -3,9 +3,8 @@ import time
 import RPi.GPIO as GPIO
 
 
-
 # set pin for amplifier switch
-amp_switch_pin = 12
+amp_switch_pin = 5
 
 # turn off GPIO warnings
 GPIO.setwarnings(False)
