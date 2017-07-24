@@ -562,8 +562,8 @@ if __name__ == '__main__':
 
                     if time_to_alarm % 5 == 0 and just_checked_wifi == False :      # checks every 5 min for wifi
                         just_checked_wifi = True
-                        logger.info('checking internet connection and restart wlan0 if needed')
-                        logger.debug(str(os.system('sudo ifup wlan0')) + ' zero means wlan0 is still on.')
+                        #logger.info('checking internet connection and restart wlan0 if needed')
+                        #logger.debug(str(os.system('sudo ifup wlan0')) + ' zero means wlan0 is still on.')
                     elif time_to_alarm % 5 != 0:
                         just_checked_wifi = False
 
