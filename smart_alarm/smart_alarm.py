@@ -32,7 +32,9 @@ Features of this python script so far:
 - writing error log to 'error.log' file
 - checks for internet connection 2mins before alarm, since the connection sometimes
     get lost during the night
-- ...
+- flashy RBG LEDs
+- enable uploading and organizing mp3 files via webinterface
+- enable Spotify interface using mopidy
 
 mpc stations:
 OrangeFM                http://orange-01.live.sil.at:8000
@@ -274,7 +276,7 @@ def tell_when_button_pressed(alarm_active, alarm_days, alarm_time):
     sound.say(info_message)
 
 
-def run_alarm():
+def run_alarm(with_leds):
     """main function to run the alarm, based
     on the configured settings in data.xml"""
     logger.info('#### NOW RUNNING ALARM #####')
@@ -284,7 +286,7 @@ def run_alarm():
     # write content to display
     display.write()
 
-    if check_if_smartalarm_is_running_LEDs():
+    if check_if_smartalarm_is_running_LEDs() and with_leds:
         # starts led light show
         led.wake_up_lightshow(time_for_leds)
 
@@ -357,7 +359,7 @@ def check_if_podcast_url_correct(url):
     if url.startswith(('http://', 'https://', 'www.')):
         pass
     else:
-        sound.say('provided podcast url does not look like a proper url. Playing default podcast instead!')
+        logger.info('provided podcast url does not look like a proper url. Playing default podcast instead!')
         return default_podcast_url
 
     try:
@@ -367,7 +369,7 @@ def check_if_podcast_url_correct(url):
         if most_recent_news_url.endswith('.mp3'):
             return url
         else:
-            sound.say('Cant find any m p 3 file in the provided podcast url. Playing default podcast instead!')
+            logger.info('Cant find any m p 3 file in the provided podcast url. Playing default podcast instead!')
             return default_podcast_url
 
 
@@ -544,9 +546,11 @@ if __name__ == '__main__':
                 # check if test alarm was pressed
                 if xml_data.test_alarm() == '1':
                     logger.info('running test alarm')
+                    print 'running test alarm'
                     xml_data.changeValue('test_alarm', '0')
-                    q = threading.Thread(target=run_alarm, args=())
+                    q = threading.Thread(target=run_alarm, args=(False,))
                     q.start()
+                    just_played_alarm = True
                 else:
                     sound.adjust_volume(xml_data.volume())
 
@@ -570,7 +574,7 @@ if __name__ == '__main__':
                     if time_to_alarm == 0:
                         logger.info('### running alarm now ###')
                         ##### RUN ALARM HERE! #####
-                        q = threading.Thread(target=run_alarm, args=())
+                        q = threading.Thread(target=run_alarm, args=(True,))
                         q.start()
                         just_played_alarm = True
 
