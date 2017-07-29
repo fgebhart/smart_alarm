@@ -292,10 +292,10 @@ def run_alarm(with_leds):
 
     # check if news or audio (offline mp3) is programmed
     if xml_data.content() == 'podcast':
+        logger.info('chosen alarm option: podcast')
 
         # set the updated individual wake-up message in order to play it
         individual_message = set_ind_msg(xml_data.individual_message_active(), xml_data.individual_message_text())
-
         # wake up with individual message
         z = threading.Thread(target=sound.say, args=(individual_message,))
         z.start()
@@ -321,11 +321,10 @@ def run_alarm(with_leds):
         a.start()
 
     elif xml_data.content() == 'mp3':
-        # since music is preferred, play the offline mp3 files
+        logger.info('chosen alarm option: mp3')
 
         # set the updated individual wake-up message in order to play it
         individual_message = set_ind_msg(xml_data.individual_message_active(), xml_data.individual_message_text())
-
         # wake up with individual message
         sound.say(individual_message)
 
@@ -333,11 +332,13 @@ def run_alarm(with_leds):
         b.start()
 
     elif xml_data.content() == 'stream':
-        # since internet-radio is preferred, play the online stream
+        logger.info('chosen alarm option: stream')
+
+        # add the provided stream url to mpc playlist, understands spotify urls as well
+        add_stream_url_to_mpc_playlist(xml_data.content_stream_url())
 
         # set the updated individual wake-up message in order to play it
         individual_message = set_ind_msg(xml_data.individual_message_active(), xml_data.individual_message_text())
-
         # wake up with individual message
         sound.say(individual_message)
 
@@ -348,7 +349,20 @@ def run_alarm(with_leds):
     led.stop_led = False
 
 
-def check_if_podcast_url_correct(url):
+def add_stream_url_to_mpc_playlist(stream_url):
+    """reads the provided stream url"""
+    os.system('mpc clear')
+    # managa default stream url
+    default_stream_url = "http://orange-01.live.sil.at:8000"
+    if stream_url.startswith(('http://', 'https://', 'www.', 'spotify:')):
+        pass
+    else:
+        logger.info('provided stream url does not look like a proper url. Playing default stream instead!')
+        stream_url = default_stream_url
+    os.system('mpc add ' + str(stream_url))
+
+
+def check_if_podcast_url_correct(podcast_url):
     """check if the provided url is okay, if not, inform master and use default podcast url"""
     # manage default podcast url
     default_podcast_url = "http://www.deutschlandfunk.de/podcast-nachrichten.1257.de.podcast.xml"
@@ -356,18 +370,18 @@ def check_if_podcast_url_correct(url):
     # DLF News: http://www.deutschlandfunk.de/podcast-nachrichten.1257.de.podcast.xml
     most_recent_news_url = 'no_mp3_file'
 
-    if url.startswith(('http://', 'https://', 'www.')):
+    if podcast_url.startswith(('http://', 'https://', 'www.')):
         pass
     else:
         logger.info('provided podcast url does not look like a proper url. Playing default podcast instead!')
         return default_podcast_url
 
     try:
-        podcast_xml_file = download_file(url)
+        podcast_xml_file = download_file(podcast_url)
         most_recent_news_url = find_most_recent_news_url_in_xml_file(podcast_xml_file)
     finally:
         if most_recent_news_url.endswith('.mp3'):
-            return url
+            return podcast_url
         else:
             logger.info('Cant find any m p 3 file in the provided podcast url. Playing default podcast instead!')
             return default_podcast_url
@@ -544,7 +558,7 @@ if __name__ == '__main__':
                 logger.info('data.xml file changed - now update settings')
 
                 # check if test alarm was pressed
-                if xml_data.test_alarm() == '1':
+                if xml_data.test_alarm() == '1' and just_played_alarm is False:
                     logger.info('running test alarm')
                     print 'running test alarm'
                     xml_data.changeValue('test_alarm', '0')
@@ -552,19 +566,20 @@ if __name__ == '__main__':
                     q.start()
                     just_played_alarm = True
                 else:
+                    print '--no testalarm--adjust volume--'
                     sound.adjust_volume(xml_data.volume())
 
             time_to_alarm = int(int(str(xml_data.alarm_time()[:2]) + str(xml_data.alarm_time()[3:]))) - int(now)
 
             # check if alarm is activated
-            if xml_data.alarm_active() == '1' and just_played_alarm == False:     # alarm is activated start managing to go off
+            if xml_data.alarm_active() == '1' and just_played_alarm is False:     # alarm is activated start managing to go off
                 # find the actual day of the week in format of a number in order to compare to the xml days variable
                 today_nr = time.strftime('%w')
 
                 if today_nr in xml_data.alarm_days():      # check if current day is programmed to alarm
                     # alarm is set to go off today, calculate the remaining time to alarm
 
-                    if time_to_alarm % 5 == 0 and just_checked_wifi == False :      # checks every 5 min for wifi
+                    if time_to_alarm % 5 == 0 and just_checked_wifi is False :      # checks every 5 min for wifi
                         just_checked_wifi = True
                         #logger.info('checking internet connection and restart wlan0 if needed')
                         #logger.debug(str(os.system('sudo ifup wlan0')) + ' zero means wlan0 is still on.')

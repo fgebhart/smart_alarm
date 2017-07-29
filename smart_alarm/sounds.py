@@ -104,10 +104,11 @@ class Sound(object):
 
     def adjust_volume(self, value):
         """adjusts the audio volume by the given value (0-100%)"""
+        logger.info('adjusting volume')
         print 'adjusting volume'
         volume_command = str('amixer set PCM -- ' + str(value) + '%')
         os.system(volume_command)
-        self.play_mp3_file(project_path + '/sounds/blop.mp3')
+        #self.play_mp3_file(project_path + '/sounds/blop.mp3')
 
     def play_wakeup_music(self):
         """find all mp3 files in the folder /home/pi/music

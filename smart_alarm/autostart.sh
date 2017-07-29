@@ -17,4 +17,4 @@ python $smart_alarm_path/smart_alarm.py &
 sudo chmod o+w $smart_alarm_path/data.xml
 
 # run mopidy for audio control
-mopidy &
+#mopidy &
