@@ -22,18 +22,6 @@ GPIO.setup(amp_switch_pin, GPIO.OUT)
 # read environmental variable for project path
 project_path = os.environ['smart_alarm_path']
 
-# enable python logging module
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-# create a file handler
-handler = logging.FileHandler(str(project_path) + '/error.log')
-handler.setLevel(logging.DEBUG)
-# create a logging format
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-# add the handlers to the logger
-logger.addHandler(handler)
-
 
 class Sound(object):
     """sound class manages smart alarm audio"""
@@ -41,21 +29,20 @@ class Sound(object):
     def __init__(self):
         """initialize variables"""
         # write to error.log file
-        logger.info('sound-module initialized')
+        logging.info('sound-module initialized')
         self.sound_active = False
         self.stop_sound = False
 
-
     def stopping_sound(self):
         """stops alarm when button is pressed"""
-        logger.info('sound is being stopped')
+        logging.info('sound is being stopped')
         self.stop_sound = True
 
     def play_mp3_file(self, mp3_file):
         # set output high in order to turn on amplifier
-        logger.info('now playing mp3')
+        logging.info('now playing mp3')
 
-        if self.sound_active == True:
+        if self.sound_active:
             return
 
         self.sound_active = True
@@ -71,7 +58,7 @@ class Sound(object):
                 pygame.mixer.music.stop()
                 pygame.mixer.quit()
                 print 'mp3 alarm turned off'
-                logger.debug('mp3 alarm turned off via button pressed')
+                logging.debug('mp3 alarm turned off via button pressed')
                 break
             else:
                 continue
@@ -84,8 +71,8 @@ class Sound(object):
 
     def say(self, text):
         """synthesizes the given text to speech"""
-        logger.info('now saying something')
-        if self.sound_active == True:
+        logging.info('now saying something')
+        if self.sound_active:
             return
 
         self.sound_active = True
@@ -104,7 +91,7 @@ class Sound(object):
 
     def adjust_volume(self, value):
         """adjusts the audio volume by the given value (0-100%)"""
-        logger.info('adjusting volume')
+        logging.info('adjusting volume')
         print 'adjusting volume'
         volume_command = str('amixer set PCM -- ' + str(value) + '%')
         os.system(volume_command)
@@ -126,7 +113,7 @@ class Sound(object):
     def play_online_stream(self):
         """plays online radio using mpc. Press button to stop. Edit mpc playlist by:
         'mpc add filename', 'mpc playlist', 'mpc clear', 'mpc play', 'mpc stop'."""
-        if self.sound_active == True:
+        if self.sound_active:
             return
 
         self.sound_active = True
@@ -138,7 +125,7 @@ class Sound(object):
         os.system('mpc play')
 
         while True:
-            if self.stop_sound == False:
+            if self.stop_sound is False:
                 pass
             else:
                 break

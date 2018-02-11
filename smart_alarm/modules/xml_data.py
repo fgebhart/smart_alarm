@@ -9,6 +9,7 @@ from os.path import isfile, join
 # read environmental variable for project path
 project_path = os.environ['smart_alarm_path']
 
+
 class Xml_data(object):
     """
     class handling the xml operations. The given functions will return
@@ -80,6 +81,7 @@ class Xml_data(object):
 
         if not elements_equal(mp3_tracks_node, mp3_tracks_node_old):
             self.xmldoc.write(self.xml_path)
+
 
 def elements_equal(e1, e2):
     if e1.tag != e2.tag: return False

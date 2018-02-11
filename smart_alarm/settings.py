@@ -3,6 +3,7 @@
 cont_set = set(['news', 'music'])
 days_set = set(['never', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'])
 
+
 class Settings(object):
     # class for storing configuration
 
@@ -26,31 +27,39 @@ class Settings(object):
         self._volume = '50'
 
     def get_alarm_time(self): return self._alarm_time
+
     def set_alarm_time(self, value): self._alarm_time = value
 
     def get_last_modified(self): return self._last_modified
+
     def set_last_modified(self, value): self._last_modified = value
 
     def get_content(self): return self._content
+
     def set_content(self, value):
         assert value in cont_set
         self._content = value
 
     def get_days(self): return self._days
+
     def set_days(self, value):
         assert value in days_set
         self._days = value
 
     def get_alarm_active(self): return self._alarm_active
+
     def set_alarm_active(self, value): self._alarm_active = value
 
     def get_individual_message(self): return self._individual_message
+
     def set_individual_message(self, value): self._individual_message = value
 
     def get_text(self): return self._text
+
     def set_text(self, value): self._text = value
 
     def get_volume(self): return self._volume
+
     def set_volume(self, value): self._volume = value
 
     alarm_time = property(get_alarm_time, set_alarm_time)

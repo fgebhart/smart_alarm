@@ -49,12 +49,12 @@ DLF News: http://www.deutschlandfunk.de/podcast-nachrichten.1257.de.podcast.xml
 import urllib2
 import RPi.GPIO as GPIO
 import threading
-from display_class import Display
-from sounds import Sound
+from modules.display_class import Display
+from modules.sounds import Sound
 import time
 import os
-from xml_data import Xml_data
-from led import LEDs
+from modules.xml_data import Xml_data
+from modules.led import LEDs
 from xml.dom import minidom
 import logging
 
@@ -71,10 +71,10 @@ def button_callback(channel):
             time.sleep(0.1)
 
         if timer < 3:
-            logger.info('button pressed for < 3 sec')
+            logging.info('button pressed for < 3 sec')
             tell_when_button_pressed(xml_data.alarm_active(), xml_data.alarm_days(), xml_data.alarm_time())
         if timer >= 3:
-            logger.info('button pressed for > 3 sec')
+            logging.info('button pressed for > 3 sec')
             shutdown_pi()
 
     elif GPIO.input(button_input_pin):
@@ -90,7 +90,7 @@ def download_file(link_to_file):
     u = urllib2.urlopen(link_to_file)
     f = open(file_name, 'wb')
     print "-> downloading: %s" % file_name
-    logger.debug("downloading file: %s" % file_name)
+    logging.debug("downloading file: %s" % file_name)
 
     # buffer the file in order to download it
     file_size_dl = 0
@@ -106,7 +106,7 @@ def download_file(link_to_file):
     f.close()
     # XML file now is saved (to the same directory like this file)
     print "-> download done"
-    logger.debug('download done')
+    logging.debug('download done')
     return file_name
 
 
@@ -156,7 +156,7 @@ def delete_old_files(time_to_alarm, alarm_active):
     # either if the time_to_alarm is 10 minutes away from going off, or if it is deactivated
     if time_to_alarm < -10 or time_to_alarm > 10 or alarm_active == '0':
         for file in range(len(list_of_mp3_files)):
-            logger.debug('deleting old mp3 files now')
+            logging.debug('deleting old mp3 files now')
             os.remove(list_of_mp3_files[file])
 
 
@@ -279,7 +279,7 @@ def tell_when_button_pressed(alarm_active, alarm_days, alarm_time):
 def run_alarm(with_leds):
     """main function to run the alarm, based
     on the configured settings in data.xml"""
-    logger.info('#### NOW RUNNING ALARM #####')
+    logging.info('#### NOW RUNNING ALARM #####')
 
     # display the current time
     display.show_time(now)
@@ -292,7 +292,7 @@ def run_alarm(with_leds):
 
     # check if news or audio (offline mp3) is programmed
     if xml_data.content() == 'podcast':
-        logger.info('chosen alarm option: podcast')
+        logging.info('chosen alarm option: podcast')
 
         # set the updated individual wake-up message in order to play it
         individual_message = set_ind_msg(xml_data.individual_message_active(), xml_data.individual_message_text())
@@ -321,7 +321,7 @@ def run_alarm(with_leds):
         a.start()
 
     elif xml_data.content() == 'mp3':
-        logger.info('chosen alarm option: mp3')
+        logging.info('chosen alarm option: mp3')
 
         # set the updated individual wake-up message in order to play it
         individual_message = set_ind_msg(xml_data.individual_message_active(), xml_data.individual_message_text())
@@ -332,7 +332,7 @@ def run_alarm(with_leds):
         b.start()
 
     elif xml_data.content() == 'stream':
-        logger.info('chosen alarm option: stream')
+        logging.info('chosen alarm option: stream')
 
         # add the provided stream url to mpc playlist, understands spotify urls as well
         add_stream_url_to_mpc_playlist(xml_data.content_stream_url())
@@ -357,7 +357,7 @@ def add_stream_url_to_mpc_playlist(stream_url):
     if stream_url.startswith(('http://', 'https://', 'www.', 'spotify:')):
         pass
     else:
-        logger.info('provided stream url does not look like a proper url. Playing default stream instead!')
+        logging.info('provided stream url does not look like a proper url. Playing default stream instead!')
         stream_url = default_stream_url
     os.system('mpc add ' + str(stream_url))
 
@@ -373,7 +373,7 @@ def check_if_podcast_url_correct(podcast_url):
     if podcast_url.startswith(('http://', 'https://', 'www.')):
         pass
     else:
-        logger.info('provided podcast url does not look like a proper url. Playing default podcast instead!')
+        logging.info('provided podcast url does not look like a proper url. Playing default podcast instead!')
         return default_podcast_url
 
     try:
@@ -383,7 +383,7 @@ def check_if_podcast_url_correct(podcast_url):
         if most_recent_news_url.endswith('.mp3'):
             return podcast_url
         else:
-            logger.info('Cant find any m p 3 file in the provided podcast url. Playing default podcast instead!')
+            logging.info('Cant find any m p 3 file in the provided podcast url. Playing default podcast instead!')
             return default_podcast_url
 
 
@@ -411,7 +411,7 @@ def shutdown_pi():
             time.sleep(0.1)
 
         if shutdown:
-            logger.debug('manually shutting down now')
+            logging.debug('manually shutting down now')
             q = threading.Thread(target=display.shutdown, args=(3,))
             q.start()
             sound.say('O K. Bye!')
@@ -444,214 +444,199 @@ def check_if_smartalarm_is_running_LEDs():
     looking for the file APA102_Pi/colorschemes.py. If it
     is there, the operating smart alarm mostlikely is running
     with LEDs"""
-    logger.info('checking if I have LEDs installed...')
+    logging.info('checking if I have LEDs installed...')
     if os.path.isfile('/home/pi/APA102_Pi/colorschemes.py'):
-        logger.info('...yeah I\'m flashy')
+        logging.info('...yeah I\'m flashy')
         return True
     else:
-        logger.info('...oh, sadly not')
+        logging.info('...oh, sadly not')
         return False
 
 
-print '-> now initializing variables...'
+project_path = os.environ['smart_alarm_path']
 
-if __name__ == '__main__':
-    # read environmental variable for project path
-    project_path = os.environ['smart_alarm_path']
+# write to error.log file
+logging.info('\n \n         ______SMART ALARM STARTED______')
 
-    # enable python logging module
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.DEBUG)
-    # create a file handler
-    handler = logging.FileHandler(str(project_path) + '/error.log')
-    handler.setLevel(logging.DEBUG)
-    # create a logging format
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    handler.setFormatter(formatter)
-    # add the handlers to the logger
-    logger.addHandler(handler)
-    # write to error.log file
-    logger.info('\n \n         ______SMART ALARM STARTED______')
+# import dispay_class
+display = Display()
 
-    # import dispay_class
-    display = Display()
+# import sound class
+sound = Sound()
 
-    # import sound class
-    sound = Sound()
+# import xml class
+xml_data = Xml_data(str(project_path) + '/data.xml')
 
-    # import xml class
-    xml_data = Xml_data(str(project_path) + '/data.xml')
+# import led class
+led = LEDs()
 
-    # import led class
-    led = LEDs()
+# set button input pin
+button_input_pin = 24
+# set pin for amplifier switch
+amp_switch_pin = 5
 
-    # set button input pin
-    button_input_pin = 24
-    # set pin for amplifier switch
-    amp_switch_pin = 5
+# define time for led light show in seconds, needs to be >= 10,
+# otherwise the leds functions will be skipped due to while functions
+time_for_leds = 300
 
-    # define time for led light show in seconds, needs to be >= 10,
-    # otherwise the leds functions will be skipped due to while functions
-    time_for_leds = 300
+# turn off GPIO warnings
+GPIO.setwarnings(False)
+# configure RPI GPIO. Make sure to use 1k ohms resistor to protect input pin
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(button_input_pin, GPIO.IN)
+# set pin to output
+GPIO.setup(amp_switch_pin, GPIO.OUT)
+# set output low in order to turn off amplifier and nullify noise
+GPIO.output(amp_switch_pin, 0)
 
-    # turn off GPIO warnings
-    GPIO.setwarnings(False)
-    # configure RPI GPIO. Make sure to use 1k ohms resistor to protect input pin
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setup(button_input_pin, GPIO.IN)
-    # set pin to output
-    GPIO.setup(amp_switch_pin, GPIO.OUT)
-    # set output low in order to turn off amplifier and nullify noise
-    GPIO.output(amp_switch_pin, 0)
+# alternative starting display
+y = threading.Thread(target=display.big_stars, args=(7,))
+y.start()
 
-    # alternative starting display
-    y = threading.Thread(target=display.big_stars, args=(7,))
-    y.start()
+# one quick led rainbow
+v = threading.Thread(target=led.rainbow, args=(10, 1,))
+v.start()
 
-    # one quick led rainbow
-    v = threading.Thread(target=led.rainbow, args=(10, 1,))
-    v.start()
+# say welcome message
+welcome_message = 'What is my purpose?'
+read_name_of_connected_wifi = "successfully connected to "\
+                              + os.popen("iw dev wlan0 link | grep SSID | awk '{print $2}'").read()\
+                              + "wifi"
+sound.say(read_name_of_connected_wifi)
 
-    # say welcome message
-    welcome_message = 'What is my purpose?'
-    read_name_of_connected_wifi = "I am connected to "\
-                                  + os.popen("iw dev wlan0 link | grep SSID | awk '{print $2}'").read()\
-                                  + "wifi"
-    sound.say(read_name_of_connected_wifi)
+# start the the button interrupt thread
+GPIO.add_event_detect(button_input_pin, GPIO.BOTH, callback=button_callback)
 
-    # start the the button interrupt thread
-    GPIO.add_event_detect(button_input_pin, GPIO.BOTH, callback=button_callback)
+# read out the settings in 'data.xml' from the same folder
+xml_file = xml_data.read_data()
+# also read out the set volume in order to recognize changes
+volume = xml_data.volume()
 
-    # read out the settings in 'data.xml' from the same folder
-    xml_file = xml_data.read_data()
-    # also read out the set volume in order to recognize changes
-    volume = xml_data.volume()
+# set flag for just played alarm and just checked wifi
+just_played_alarm = False
+just_checked_wifi = False
 
-    # set flag for just played alarm and just checked wifi
-    just_played_alarm = False
-    just_checked_wifi = False
+# set loop counter to one (needed to calculate mean of 10 iterations for the display brightness control)
+loop_counter = 1
 
-    # set loop counter to one (needed to calculate mean of 10 iterations for the display brightness control)
-    loop_counter = 1
+# set brightness_data to zero in order to initialize the variable
+brightness_data = 0
 
-    # set brightness_data to zero in order to initialize the variable
-    brightness_data = 0
+# set the number of iterations to go through for the mean of brightness value
+# 5 looks pretty stable, but does not act too fast on sharp changes. Increase value for more stability,
+# decrease it for faster response time
+number_of_iterations = 5
 
-    # set the number of iterations to go through for the mean of brightness value
-    # 5 looks pretty stable, but does not act too fast on sharp changes. Increase value for more stability,
-    # decrease it for faster response time
-    number_of_iterations = 5
+# set decimal point flag - for decimal point blinking
+point = False
 
-    # set decimal point flag - for decimal point blinking
-    point = False
+logging.info('-> starting main loop...')
 
-    logger.info('-> starting main loop...')
+try:
+    while True:
+        # organise time format
+        now = time.strftime("%H%M")
 
-    try:
-        while True:
-            # organise time format
-            now = time.strftime("%H%M")
+        # reset display
+        display.clear_class()
 
-            # reset display
-            display.clear_class()
+        # read xml file and store data to xml_data
+        new_xml_file = xml_data.read_data()
+        # read new volume in order to recognize changes
+        new_volume = xml_data.volume()
 
-            # read xml file and store data to xml_data
-            new_xml_file = xml_data.read_data()
-            # read new volume in order to recognize changes
-            new_volume = xml_data.volume()
+        # check if xml file was updated. If so, update the variables
+        if xml_file != new_xml_file:
+            logging.info('data.xml file changed - now update settings')
+            print 'xml file changed - now update settings'
+            sound.play_mp3_file(project_path + '/sounds/blop.mp3')
 
-            # check if xml file was updated. If so, update the variables
-            if xml_file != new_xml_file:
-                logger.info('data.xml file changed - now update settings')
-                print 'xml file changed - now update settings'
-                sound.play_mp3_file(project_path + '/sounds/blop.mp3')
+            # check if test alarm was pressed
+            if xml_data.test_alarm() == '1' and just_played_alarm is False:
+                logging.info('running test alarm')
+                print 'running test alarm'
+                xml_data.changeValue('test_alarm', '0')
+                q = threading.Thread(target=run_alarm, args=(False,))
+                q.start()
+                just_played_alarm = True
+            elif volume != new_volume:
+                print 'now adjusting volume'
+                sound.adjust_volume(xml_data.volume())
 
-                # check if test alarm was pressed
-                if xml_data.test_alarm() == '1' and just_played_alarm is False:
-                    logger.info('running test alarm')
-                    print 'running test alarm'
-                    xml_data.changeValue('test_alarm', '0')
-                    q = threading.Thread(target=run_alarm, args=(False,))
+        time_to_alarm = int(int(str(xml_data.alarm_time()[:2]) + str(xml_data.alarm_time()[3:]))) - int(now)
+
+        # check if alarm is activated
+        if xml_data.alarm_active() == '1' and just_played_alarm is False:     # alarm is activated start managing to go off
+            # find the actual day of the week in format of a number in order to compare to the xml days variable
+            today_nr = time.strftime('%w')
+
+            if today_nr in xml_data.alarm_days():      # check if current day is programmed to alarm
+                # alarm is set to go off today, calculate the remaining time to alarm
+
+                if time_to_alarm % 5 == 0 and just_checked_wifi is False :      # checks every 5 min for wifi
+                    just_checked_wifi = True
+                    #logging.info('checking internet connection and restart wlan0 if needed')
+                    #logging.debug(str(os.system('sudo ifup wlan0')) + ' zero means wlan0 is still on.')
+                elif time_to_alarm % 5 != 0:
+                    just_checked_wifi = False
+
+                if time_to_alarm == 0:
+                    logging.info('### running alarm now ###')
+                    ##### RUN ALARM HERE! #####
+                    q = threading.Thread(target=run_alarm, args=(True,))
                     q.start()
                     just_played_alarm = True
-                elif volume != new_volume:
-                    print 'now adjusting volume'
-                    sound.adjust_volume(xml_data.volume())
 
-            time_to_alarm = int(int(str(xml_data.alarm_time()[:2]) + str(xml_data.alarm_time()[3:]))) - int(now)
+        if time_to_alarm != 0:
+            # set just_played_alarm back to False in order to not miss the next alarm
+            just_played_alarm = False
 
-            # check if alarm is activated
-            if xml_data.alarm_active() == '1' and just_played_alarm is False:     # alarm is activated start managing to go off
-                # find the actual day of the week in format of a number in order to compare to the xml days variable
-                today_nr = time.strftime('%w')
+        # display the current time
+        display.show_time(now)
 
-                if today_nr in xml_data.alarm_days():      # check if current day is programmed to alarm
-                    # alarm is set to go off today, calculate the remaining time to alarm
+        # check if alarm is active and set third decimal point
+        if xml_data.alarm_active() == '1':
+            display.set_decimal(3, True)
+        else:
+            # else if alarm is deactivated, turn last decimal point off
+            display.set_decimal(3, False)
 
-                    if time_to_alarm % 5 == 0 and just_checked_wifi is False :      # checks every 5 min for wifi
-                        just_checked_wifi = True
-                        #logger.info('checking internet connection and restart wlan0 if needed')
-                        #logger.debug(str(os.system('sudo ifup wlan0')) + ' zero means wlan0 is still on.')
-                    elif time_to_alarm % 5 != 0:
-                        just_checked_wifi = False
+        if point:
+            display.set_decimal(1, point)
+            point = False
+            # write content to display
+            display.write()
+            time.sleep(0.5)
+        else:
+            display.set_decimal(1, point)
+            point = True
+            # write content to display
+            display.write()
+            time.sleep(0.5)
 
-                    if time_to_alarm == 0:
-                        logger.info('### running alarm now ###')
-                        ##### RUN ALARM HERE! #####
-                        q = threading.Thread(target=run_alarm, args=(True,))
-                        q.start()
-                        just_played_alarm = True
+        # delete old and unneeded mp3 files
+        delete_old_files(time_to_alarm, xml_data.alarm_active())
 
-            if time_to_alarm != 0:
-                # set just_played_alarm back to False in order to not miss the next alarm
-                just_played_alarm = False
+        # update xml file in order to find differences in next loop
+        xml_file = new_xml_file
 
-            # display the current time
-            display.show_time(now)
+        # read area brightness with photocell, save the data to current_brightness and add it the brightness_data
+        # in order to calculate the mean of an set of measurements
+        current_brightness = read_photocell()
+        brightness_data += current_brightness
 
-            # check if alarm is active and set third decimal point
-            if xml_data.alarm_active() == '1':
-                display.set_decimal(3, True)
-            else:
-                # else if alarm is deactivated, turn last decimal point off
-                display.set_decimal(3, False)
+        # increase loop counter +1 since loop is about to start again
+        loop_counter += 1
+        if loop_counter > number_of_iterations:
+            display.set_brightness(int(brightness_data) / number_of_iterations)
+            loop_counter = 1
+            brightness_data = 0
 
-            if point:
-                display.set_decimal(1, point)
-                point = False
-                # write content to display
-                display.write()
-                time.sleep(0.5)
-            else:
-                display.set_decimal(1, point)
-                point = True
-                # write content to display
-                display.write()
-                time.sleep(0.5)
+# make sure to save all error messages to the log file
+except:
+    logging.exception('Got error on main handler')
 
-            # delete old and unneeded mp3 files
-            delete_old_files(time_to_alarm, xml_data.alarm_active())
-
-            # update xml file in order to find differences in next loop
-            xml_file = new_xml_file
-
-            # read area brightness with photocell, save the data to current_brightness and add it the brightness_data
-            # in order to calculate the mean of an set of measurements
-            current_brightness = read_photocell()
-            brightness_data += current_brightness
-
-            # increase loop counter +1 since loop is about to start again
-            loop_counter += 1
-            if loop_counter > number_of_iterations:
-                display.set_brightness(int(brightness_data) / number_of_iterations)
-                loop_counter = 1
-                brightness_data = 0
-
-    # make sure to save all error messages to the log file
-    except:
-        logger.exception('Got error on main handler')
-
-    finally:  # this block will run no matter how the try block exits
-        if_interrupt()
+finally:  # this block will run no matter how the try block exits
+    if_interrupt()
 
 

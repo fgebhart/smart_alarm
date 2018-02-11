@@ -7,18 +7,6 @@ import os
 # read environmental variable for project path
 project_path = os.environ['smart_alarm_path']
 
-# enable python logging module
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-# create a file handler
-handler = logging.FileHandler(str(project_path) + '/error.log')
-handler.setLevel(logging.DEBUG)
-# create a logging format
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-# add the handlers to the logger
-logger.addHandler(handler)
-
 
 class Display(object):
     """
@@ -28,7 +16,7 @@ class Display(object):
     def __init__(self):
         """init function: imports adafruit alphanumeric display class and begins"""
         # write to error.log file
-        logger.info('-> display-module initialized')
+        logging.info('-> display-module initialized')
         self.display_lib = AlphaNum4.AlphaNum4()
         self.display_lib.begin()
         self.display_in_use = False

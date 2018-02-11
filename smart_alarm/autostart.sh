@@ -11,7 +11,7 @@ sudo service mpd stop
 gpio_alt -p 18 -f 5
 
 # run smart_alarm main script
-python $smart_alarm_path/smart_alarm.py &
+python $smart_alarm_path/start_smala.py &
 
 # change rights of data.xml to make it editable
 sudo chmod o+w $smart_alarm_path/data.xml
