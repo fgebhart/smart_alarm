@@ -33,7 +33,6 @@ class Display(object):
         self.display_lib.begin()
         self.display_in_use = False
 
-
     def scroll(self, message, number_of_iteration):
         """scrolls the given message from right to left through the display.
         Set number_f_iterations = 1, in order to display the message just once."""
@@ -92,8 +91,7 @@ class Display(object):
         for off and 1 (or any True/non-zero value) for on."""
         self.display_lib.set_led(led, value)
 
-
-    # The following functionsa are not mandatory, because they just contain little display games
+    # The following functions are not mandatory, because they just contain little display games
 
     def shutdown(self, number_of_iterations):
         """goes from top segments to bottom segments"""

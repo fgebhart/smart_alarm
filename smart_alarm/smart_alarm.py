@@ -509,18 +509,23 @@ if __name__ == '__main__':
     y.start()
 
     # one quick led rainbow
-    v = threading.Thread(target=led.rainbow, args=(10,1,))
+    v = threading.Thread(target=led.rainbow, args=(10, 1,))
     v.start()
 
     # say welcome message
     welcome_message = 'What is my purpose?'
-    sound.say(welcome_message)
+    read_name_of_connected_wifi = "I am connected to "\
+                                  + os.popen("iw dev wlan0 link | grep SSID | awk '{print $2}'").read()\
+                                  + "wifi"
+    sound.say(read_name_of_connected_wifi)
 
     # start the the button interrupt thread
     GPIO.add_event_detect(button_input_pin, GPIO.BOTH, callback=button_callback)
 
     # read out the settings in 'data.xml' from the same folder
     xml_file = xml_data.read_data()
+    # also read out the set volume in order to recognize changes
+    volume = xml_data.volume()
 
     # set flag for just played alarm and just checked wifi
     just_played_alarm = False
@@ -552,10 +557,14 @@ if __name__ == '__main__':
 
             # read xml file and store data to xml_data
             new_xml_file = xml_data.read_data()
+            # read new volume in order to recognize changes
+            new_volume = xml_data.volume()
 
             # check if xml file was updated. If so, update the variables
             if xml_file != new_xml_file:
                 logger.info('data.xml file changed - now update settings')
+                print 'xml file changed - now update settings'
+                sound.play_mp3_file(project_path + '/sounds/blop.mp3')
 
                 # check if test alarm was pressed
                 if xml_data.test_alarm() == '1' and just_played_alarm is False:
@@ -565,8 +574,8 @@ if __name__ == '__main__':
                     q = threading.Thread(target=run_alarm, args=(False,))
                     q.start()
                     just_played_alarm = True
-                else:
-                    print '--no testalarm--adjust volume--'
+                elif volume != new_volume:
+                    print 'now adjusting volume'
                     sound.adjust_volume(xml_data.volume())
 
             time_to_alarm = int(int(str(xml_data.alarm_time()[:2]) + str(xml_data.alarm_time()[3:]))) - int(now)
