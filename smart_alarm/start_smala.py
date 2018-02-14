@@ -11,7 +11,7 @@ def build_logger(logging_level):
                         level=logging_level,
                         format='%(asctime)s :: '
                                '%(levelname)s :: '
-                               '%(funcName)s in %(pathname)s :: '
+                               '%(funcName)s in %(filename)s :: '
                                '%(message)s')
 
 
@@ -20,7 +20,7 @@ def enable_console_logging(logging_level):
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging_level)
     formatter = logging.Formatter('%(levelname)s :: '
-                                  '%(funcName)s in %(pathname)s (l:%(lineno)d) :: '
+                                  '%(funcName)s in %(filename)s (l:%(lineno)d) :: '
                                   '%(message)s')
     console_handler.setFormatter(formatter)
     logging.getLogger("").addHandler(console_handler)

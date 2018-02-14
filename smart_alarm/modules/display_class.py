@@ -16,10 +16,10 @@ class Display(object):
     def __init__(self):
         """init function: imports adafruit alphanumeric display class and begins"""
         # write to error.log file
-        logging.info('-> display-module initialized')
         self.display_lib = AlphaNum4.AlphaNum4()
         self.display_lib.begin()
         self.display_in_use = False
+        logging.info('display-module initialized')
 
     def scroll(self, message, number_of_iteration):
         """scrolls the given message from right to left through the display.

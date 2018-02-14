@@ -27,19 +27,19 @@ class LEDs(object):
     def stopping_leds(self):
         """stops leds when button is pressed"""
         logging.info('leds are being stopped')
-        print 'now stopping leds'
+        logging.debug('now stopping leds')
         self.stop_led = True
 
     def rainbow(self, brightness, duration_time):
         """colorful rainbow cycling through all leds"""
-        if self.stop_led == True:
+        if self.stop_led:
             logging.info('skipping led rainbow, since button was pressed')
             return
         logging.info('running led rainbow')
         self.leds_active = True
         clock = 0
         start = time.time()
-        while clock < duration_time and self.stop_led == False:
+        while clock < duration_time and self.stop_led is False:
             rainbow = colorschemes.Rainbow(numLEDs=self.number_of_leds, pauseValue=0.02, numStepsPerCycle=255,
                                            numCycles=1, globalBrightness=brightness)
             rainbow.start()
@@ -48,14 +48,14 @@ class LEDs(object):
 
     def white_blinking(self, duration_time):
         """most bright white blinking, finally you should wake up"""
-        if self.stop_led == True:
+        if self.stop_led:
             logging.info('skipping led white blinking, since button was pressed')
             return
         logging.info('running led white blinking')
         self.leds_active = True
         clock = 0
         start = time.time()
-        while clock < duration_time and self.stop_led == False:
+        while clock < duration_time and self.stop_led is False:
             blinking = colorschemes.Solid(numLEDs=self.number_of_leds, pauseValue=0.05, numStepsPerCycle=1,
                                           numCycles=1)
             blinking.start()

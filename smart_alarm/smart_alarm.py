@@ -458,17 +458,32 @@ project_path = os.environ['smart_alarm_path']
 # write to error.log file
 logging.info('\n \n         ______SMART ALARM STARTED______')
 
-# import dispay_class
-display = Display()
+# initialize variables for creating objects
+display = sound = xml_data = led = None
+
+# import display_class
+try:
+    display = Display()
+except Exception as e:
+    logging.error("failed to instantiate display class with exception {}".format(e))
 
 # import sound class
-sound = Sound()
+try:
+    sound = Sound()
+except Exception as e:
+    logging.error("failed to instantiate sound class with exception {}".format(e))
 
 # import xml class
-xml_data = Xml_data(str(project_path) + '/data.xml')
+try:
+    xml_data = Xml_data(str(project_path) + '/data.xml')
+except Exception as e:
+    logging.error("failed to instantiate xml_data class with exception {}".format(e))
 
 # import led class
-led = LEDs()
+try:
+    led = LEDs()
+except Exception as e:
+    logging.error("failed to instantiate LED class with exception {}".format(e))
 
 # set button input pin
 button_input_pin = 24
@@ -523,14 +538,14 @@ loop_counter = 1
 brightness_data = 0
 
 # set the number of iterations to go through for the mean of brightness value
-# 5 looks pretty stable, but does not act too fast on sharp changes. Increase value for more stability,
-# decrease it for faster response time
+# 5 seconds look pretty stable, but does not act too fast on sharp changes.
+# Increase value for more stability, decrease it for faster response time
 number_of_iterations = 5
 
 # set decimal point flag - for decimal point blinking
 point = False
 
-logging.info('-> starting main loop...')
+logging.info('starting main loop...')
 
 try:
     while True:
@@ -547,26 +562,24 @@ try:
 
         # check if xml file was updated. If so, update the variables
         if xml_file != new_xml_file:
-            logging.info('data.xml file changed - now update settings')
-            print 'xml file changed - now update settings'
+            logging.debug('data.xml file changed - now update settings')
             sound.play_mp3_file(project_path + '/sounds/blop.mp3')
 
             # check if test alarm was pressed
             if xml_data.test_alarm() == '1' and just_played_alarm is False:
-                logging.info('running test alarm')
-                print 'running test alarm'
+                logging.debug('running test alarm')
                 xml_data.changeValue('test_alarm', '0')
                 q = threading.Thread(target=run_alarm, args=(False,))
                 q.start()
                 just_played_alarm = True
             elif volume != new_volume:
-                print 'now adjusting volume'
+                logging.debug('now adjusting volume')
                 sound.adjust_volume(xml_data.volume())
 
         time_to_alarm = int(int(str(xml_data.alarm_time()[:2]) + str(xml_data.alarm_time()[3:]))) - int(now)
 
         # check if alarm is activated
-        if xml_data.alarm_active() == '1' and just_played_alarm is False:     # alarm is activated start managing to go off
+        if xml_data.alarm_active() == '1' and just_played_alarm is False:  # alarm is activated start managing to go off
             # find the actual day of the week in format of a number in order to compare to the xml days variable
             today_nr = time.strftime('%w')
 
@@ -575,14 +588,14 @@ try:
 
                 if time_to_alarm % 5 == 0 and just_checked_wifi is False :      # checks every 5 min for wifi
                     just_checked_wifi = True
-                    #logging.info('checking internet connection and restart wlan0 if needed')
-                    #logging.debug(str(os.system('sudo ifup wlan0')) + ' zero means wlan0 is still on.')
+                    # logging.info('checking internet connection and restart wlan0 if needed')
+                    # logging.debug(str(os.system('sudo ifup wlan0')) + ' zero means wlan0 is still on.')
                 elif time_to_alarm % 5 != 0:
                     just_checked_wifi = False
 
                 if time_to_alarm == 0:
-                    logging.info('### running alarm now ###')
-                    ##### RUN ALARM HERE! #####
+                    logging.info('>>>>> running alarm now <<<<<')
+                    # ----------- RUN ALARM HERE! -----------
                     q = threading.Thread(target=run_alarm, args=(True,))
                     q.start()
                     just_played_alarm = True
@@ -606,13 +619,13 @@ try:
             point = False
             # write content to display
             display.write()
-            time.sleep(0.5)
+            time.sleep(0.5)     # <- replace by modulo operator to ensure blinking in second wise intervals
         else:
             display.set_decimal(1, point)
             point = True
             # write content to display
             display.write()
-            time.sleep(0.5)
+            time.sleep(0.5)     # <- same here
 
         # delete old and unneeded mp3 files
         delete_old_files(time_to_alarm, xml_data.alarm_active())
@@ -633,10 +646,8 @@ try:
             brightness_data = 0
 
 # make sure to save all error messages to the log file
-except:
-    logging.exception('Got error on main handler')
+except Exception as e:
+    logging.error('Got error on main handler: {}'.format(e))
 
 finally:  # this block will run no matter how the try block exits
     if_interrupt()
-
-

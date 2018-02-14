@@ -50,14 +50,13 @@ class Sound(object):
         time.sleep(0.3)
         pygame.mixer.init()
         pygame.mixer.music.load(mp3_file)
-        print "now playing file: ", mp3_file
+        logging.debug("now playing file: ", mp3_file)
         pygame.mixer.music.play()
         while pygame.mixer.music.get_busy():
             time.sleep(0.1)
             if self.stop_sound:
                 pygame.mixer.music.stop()
                 pygame.mixer.quit()
-                print 'mp3 alarm turned off'
                 logging.debug('mp3 alarm turned off via button pressed')
                 break
             else:
@@ -85,24 +84,23 @@ class Sound(object):
         engine.say(text)
         engine.runAndWait()
         time.sleep(0.2)
-        # set ouput low in order to turn off amplifier
+        # set output low in order to turn off amplifier
         GPIO.output(amp_switch_pin, 0)
         self.sound_active = False
 
     def adjust_volume(self, value):
         """adjusts the audio volume by the given value (0-100%)"""
-        logging.info('adjusting volume')
-        print 'adjusting volume'
+        logging.debug('adjusting volume')
         volume_command = str('amixer set PCM -- ' + str(value) + '%')
         os.system(volume_command)
-        #self.play_mp3_file(project_path + '/sounds/blop.mp3')
+        # self.play_mp3_file(project_path + '/sounds/blop.mp3')
 
     def play_wakeup_music(self):
         """find all mp3 files in the folder /home/pi/music
         and play one of them at random"""
         list_of_music_files = []
-        for file in os.listdir(project_path + '/music'):
-            if file.endswith(".mp3"):
+        for track in os.listdir(project_path + '/music'):
+            if track.endswith(".mp3"):
                 list_of_music_files.append(str(project_path + '/music/' + str(file)))
 
         # figure out random track of the found mp3 files
@@ -118,7 +116,7 @@ class Sound(object):
 
         self.sound_active = True
 
-        print 'now playing internet radio'
+        logging.debug('now playing internet radio')
         # set output high in order to turn on amplifier
         GPIO.output(amp_switch_pin, 1)
         time.sleep(0.3)
@@ -134,6 +132,6 @@ class Sound(object):
         time.sleep(0.5)
         # set ouput low in order to turn off amplifier
         GPIO.output(amp_switch_pin, 0)
-        print 'internet radio alarm turned off'
+        logging.debug('internet radio alarm turned off')
         self.sound_active = False
         self.stop_sound = False
