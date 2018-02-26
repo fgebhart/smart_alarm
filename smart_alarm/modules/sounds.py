@@ -38,6 +38,11 @@ class Sound(object):
         logging.info('sound is being stopped')
         self.stop_sound = True
 
+    def toggle_amp_pin(self):
+        # set pwm audio pin one or zero, depending on the current state
+        logging.debug("now changing state of amp pin")
+        GPIO.output(amp_switch_pin, not GPIO.input(amp_switch_pin))
+
     def play_mp3_file(self, mp3_file):
         # set output high in order to turn on amplifier
         logging.info('now playing mp3')
@@ -62,7 +67,7 @@ class Sound(object):
             else:
                 continue
         time.sleep(0.5)
-        # set ouput low in order to turn off amplifier
+        # set output low in order to turn off amplifier
         GPIO.output(amp_switch_pin, 0)
         pygame.mixer.quit()
         self.sound_active = False

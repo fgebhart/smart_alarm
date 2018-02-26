@@ -1,3 +1,4 @@
+#!/usr/bin/python
 __author__ = 'Fabian Gebhart'
 
 
@@ -56,13 +57,16 @@ import os
 from modules.xml_data import Xml_data
 from modules.led import LEDs
 from xml.dom import minidom
-import logging
+import logging.config
+import log_config
 
 
 def button_callback(channel):
     """define a threaded callback function to run when events are detected"""
     start_timer = time.time()
     timer = 0
+
+    logging.debug("button pressed")
 
     if GPIO.input(button_input_pin) and sound.sound_active is False and led.leds_active is False:  # if port 24 == 1
         while GPIO.input(button_input_pin) and timer < 3:
@@ -286,7 +290,7 @@ def run_alarm(with_leds):
     # write content to display
     display.write()
 
-    if check_if_smartalarm_is_running_LEDs() and with_leds:
+    if check_if_smartalarm_is_running_leds() and with_leds:
         # starts led light show
         led.wake_up_lightshow(time_for_leds)
 
@@ -313,7 +317,7 @@ def run_alarm(with_leds):
         news_mp3_file = download_file(most_recent_news_url)
 
         # wait untill thread z (say) is done
-        while z.isAlive() == True:
+        while z.isAlive() is True:
             time.sleep(0.5)
 
         # play the most recent news_mp3_file
@@ -402,7 +406,6 @@ def shutdown_pi():
     if GPIO.input(button_input_pin) == 0:
 
         while timer < 5:
-            #print 'shut down timer: ', timer
             loop_timer = time.time()
             timer = loop_timer - start_timer
             if GPIO.input(button_input_pin):
@@ -420,6 +423,9 @@ def shutdown_pi():
             display.write()
             print '... now shutting down ...'
             os.system('sudo poweroff')
+        else:
+            logging.debug("won't shut down")
+            sound.say("O K. I'll stay!")
 
 
 def if_interrupt():
@@ -439,7 +445,7 @@ def change_stream_url(stream_url):
     os.system(string_command_add_url)
 
 
-def check_if_smartalarm_is_running_LEDs():
+def check_if_smartalarm_is_running_leds():
     """checks if this smart alarm version is running LEDs by
     looking for the file APA102_Pi/colorschemes.py. If it
     is there, the operating smart alarm mostlikely is running
@@ -454,6 +460,7 @@ def check_if_smartalarm_is_running_LEDs():
 
 
 project_path = os.environ['smart_alarm_path']
+logging.config.dictConfig(log_config.logging_dict)
 
 # write to error.log file
 logging.info('\n \n         ______SMART ALARM STARTED______')
@@ -545,6 +552,9 @@ number_of_iterations = 5
 # set decimal point flag - for decimal point blinking
 point = False
 
+# start timer for second-wise dot blinking
+start_time = time.time()
+
 logging.info('starting main loop...')
 
 try:
@@ -619,13 +629,13 @@ try:
             point = False
             # write content to display
             display.write()
-            time.sleep(0.5)     # <- replace by modulo operator to ensure blinking in second wise intervals
+            time.sleep(1.0 - ((time.time() - start_time) % 1.0))
         else:
             display.set_decimal(1, point)
             point = True
             # write content to display
             display.write()
-            time.sleep(0.5)     # <- same here
+            time.sleep(1.0 - ((time.time() - start_time) % 1.0))
 
         # delete old and unneeded mp3 files
         delete_old_files(time_to_alarm, xml_data.alarm_active())

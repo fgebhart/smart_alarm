@@ -24,6 +24,6 @@ def play_mp3_file(mp3_file):
     # set ouput low in order to turn off amplifier
 
 
-play_mp3_file("/home/pi/smart_alarm/tests/example.mp3")
+play_mp3_file("example.mp3")
 
 GPIO.output(amp_switch_pin, 0)
