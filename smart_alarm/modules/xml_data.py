@@ -1,6 +1,7 @@
 import xml.etree.cElementTree as ET
 import copy
 import os
+import logging
 
 from os import listdir
 from os.path import isfile, join
@@ -64,6 +65,7 @@ class Xml_data(object):
     def changeValue(self, element_name, value):
         """Allows editing the xml-file, by passing the elements-
         name and the desired value."""
+        logging.debug("XML CHANGE: element: {}; value: {}".format(element_name, value))
         self.xmldoc.find(element_name).text = value
         self.writeFile()
 

@@ -433,7 +433,7 @@ def if_interrupt():
     k = threading.Thread(target=sound.say, args=('Outsch!',))
     k.start()
     display.snake(1)
-    GPIO.output(amp_switch_pin, 0)  # switch amp off
+    sound.toggle_amp_pin(0)   # switch amp off
     print '\n... crashed ... bye!\n   -> check error.log for more information'
 
 
@@ -509,8 +509,7 @@ GPIO.setup(button_input_pin, GPIO.IN)
 # set pin to output
 GPIO.setup(amp_switch_pin, GPIO.OUT)
 # set output low in order to turn off amplifier and nullify noise
-GPIO.output(amp_switch_pin, 0)
-
+sound.toggle_amp_pin(0)
 # alternative starting display
 y = threading.Thread(target=display.big_stars, args=(7,))
 y.start()
@@ -583,7 +582,6 @@ try:
                 q.start()
                 just_played_alarm = True
             elif volume != new_volume:
-                logging.debug('now adjusting volume')
                 sound.adjust_volume(xml_data.volume())
 
         time_to_alarm = int(int(str(xml_data.alarm_time()[:2]) + str(xml_data.alarm_time()[3:]))) - int(now)

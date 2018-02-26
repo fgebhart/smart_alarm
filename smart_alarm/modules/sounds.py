@@ -35,27 +35,34 @@ class Sound(object):
 
     def stopping_sound(self):
         """stops alarm when button is pressed"""
-        logging.info('sound is being stopped')
+        logging.info('current sound play is being stopped')
         self.stop_sound = True
 
-    def toggle_amp_pin(self):
+    def toggle_amp_pin(self, toggle):
         # set pwm audio pin one or zero, depending on the current state
-        logging.debug("now changing state of amp pin")
-        GPIO.output(amp_switch_pin, not GPIO.input(amp_switch_pin))
+        logging.debug("setting amp switch pin to: {}".format(toggle))
+        if toggle == 0:
+            GPIO.output(amp_switch_pin, 0)
+        elif toggle == 1:
+            GPIO.output(amp_switch_pin, 1)
+        else:
+            raise TypeError("got wrong value for toggle variable, should be 1 or 0.")
+        # GPIO.output(amp_switch_pin, not GPIO.input(amp_switch_pin))
 
     def play_mp3_file(self, mp3_file):
-        # set output high in order to turn on amplifier
-        logging.info('now playing mp3')
-
         if self.sound_active:
-            return
+            logging.debug("sound active, but need to play sth else - stopping")
+            self.stopping_sound()
+            #logging.debug('sound_active is {}, skipping play'.format(self.sound_active))
+            #return
 
         self.sound_active = True
-        GPIO.output(amp_switch_pin, 1)
+        # set output high in order to turn on amplifier
+        self.toggle_amp_pin(1)
         time.sleep(0.3)
         pygame.mixer.init()
         pygame.mixer.music.load(mp3_file)
-        logging.debug("now playing file: ", mp3_file)
+        logging.debug("now playing file: {}".format(mp3_file))
         pygame.mixer.music.play()
         while pygame.mixer.music.get_busy():
             time.sleep(0.1)
@@ -68,20 +75,22 @@ class Sound(object):
                 continue
         time.sleep(0.5)
         # set output low in order to turn off amplifier
-        GPIO.output(amp_switch_pin, 0)
+        self.toggle_amp_pin(0)
         pygame.mixer.quit()
         self.sound_active = False
         self.stop_sound = False
 
     def say(self, text):
         """synthesizes the given text to speech"""
-        logging.info('now saying something')
         if self.sound_active:
-            return
+            logging.debug("sound active, but need to play sth else - stopping")
+            self.stopping_sound()
+            #logging.debug('sound_active is {}, skipping say'.format(self.sound_active))
+            #return
 
         self.sound_active = True
         # set output high in order to turn on amplifier
-        GPIO.output(amp_switch_pin, 1)
+        self.toggle_amp_pin(1)
         time.sleep(0.3)
         engine = pyttsx.init()
         engine.setProperty('rate', 125)
@@ -90,7 +99,7 @@ class Sound(object):
         engine.runAndWait()
         time.sleep(0.2)
         # set output low in order to turn off amplifier
-        GPIO.output(amp_switch_pin, 0)
+        self.toggle_amp_pin(0)
         self.sound_active = False
 
     def adjust_volume(self, value):
@@ -106,7 +115,7 @@ class Sound(object):
         list_of_music_files = []
         for track in os.listdir(project_path + '/music'):
             if track.endswith(".mp3"):
-                list_of_music_files.append(str(project_path + '/music/' + str(file)))
+                list_of_music_files.append(str(project_path + '/music/' + str(track)))
 
         # figure out random track of the found mp3 files
         random_track = randint(0, len(list_of_music_files)-1)
@@ -117,13 +126,15 @@ class Sound(object):
         """plays online radio using mpc. Press button to stop. Edit mpc playlist by:
         'mpc add filename', 'mpc playlist', 'mpc clear', 'mpc play', 'mpc stop'."""
         if self.sound_active:
-            return
+            logging.debug("sound active, but need to play sth else - stopping")
+            self.stopping_sound()
+            #return
 
         self.sound_active = True
 
         logging.debug('now playing internet radio')
         # set output high in order to turn on amplifier
-        GPIO.output(amp_switch_pin, 1)
+        self.toggle_amp_pin(1)
         time.sleep(0.3)
         os.system('mpc play')
 
@@ -135,8 +146,8 @@ class Sound(object):
 
         os.system('mpc stop')
         time.sleep(0.5)
-        # set ouput low in order to turn off amplifier
-        GPIO.output(amp_switch_pin, 0)
+        # set output low in order to turn off amplifier
+        self.toggle_amp_pin(0)
         logging.debug('internet radio alarm turned off')
         self.sound_active = False
         self.stop_sound = False

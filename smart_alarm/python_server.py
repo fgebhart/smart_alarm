@@ -10,7 +10,7 @@ if project_path not in sys.path:
     sys.path.append(project_path)
 os.chdir(project_path)
 
-from smart_alarm.smart_alarm.modules.xml_data import Xml_data
+from modules.xml_data import Xml_data
 
 
 # import xml class
