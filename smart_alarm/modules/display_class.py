@@ -6,6 +6,7 @@ import os
 
 # read environmental variable for project path
 project_path = os.environ['smart_alarm_path']
+logger = logging.getLogger(__name__)
 
 
 class Display(object):
@@ -19,7 +20,7 @@ class Display(object):
         self.display_lib = AlphaNum4.AlphaNum4()
         self.display_lib.begin()
         self.display_in_use = False
-        logging.info('display-module initialized')
+        logger.info('display-module initialized')
 
     def scroll(self, message, number_of_iteration):
         """scrolls the given message from right to left through the display.

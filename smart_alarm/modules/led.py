@@ -8,6 +8,7 @@ import logging
 
 # read environmental variable for project path
 project_path = os.environ['smart_alarm_path']
+logger = logging.getLogger(__name__)
 
 
 class LEDs(object):
@@ -19,23 +20,23 @@ class LEDs(object):
     def __init__(self):
         """init functions: set variables and start adafruit dotstar class"""
         # write to error.log file
-        logging.info('led-module initialized')
+        logger.info('led-module initialized')
         self.number_of_leds = 9
         self.stop_led = False
         self.leds_active = False
 
     def stopping_leds(self):
         """stops leds when button is pressed"""
-        logging.info('leds are being stopped')
-        logging.debug('now stopping leds')
+        logger.debug('leds are being stopped')
+        logger.debug('now stopping leds')
         self.stop_led = True
 
     def rainbow(self, brightness, duration_time):
         """colorful rainbow cycling through all leds"""
         if self.stop_led:
-            logging.info('skipping led rainbow, since button was pressed')
+            logger.debug('skipping led rainbow, since button was pressed')
             return
-        logging.info('running led rainbow')
+        logger.debug('running led rainbow with brightness {}/10 for {}sec'.format(brightness, duration_time))
         self.leds_active = True
         clock = 0
         start = time.time()
@@ -49,9 +50,9 @@ class LEDs(object):
     def white_blinking(self, duration_time):
         """most bright white blinking, finally you should wake up"""
         if self.stop_led:
-            logging.info('skipping led white blinking, since button was pressed')
+            logger.debug('skipping led white blinking, since button was pressed')
             return
-        logging.info('running led white blinking')
+        logger.debug('running led white blinking')
         self.leds_active = True
         clock = 0
         start = time.time()
@@ -63,8 +64,8 @@ class LEDs(object):
             clock = time.time() - start
         self.leds_active = False
 
-    def wake_up_lightshow(self, duration_time):
-        """combination of erlier functions, adjust when needed"""
+    def wake_up_light_show(self, duration_time):
+        """combination of earlier functions, adjust when needed"""
         self.rainbow(1, duration_time/4)
         self.rainbow(3, duration_time/4)
         self.rainbow(10, duration_time/4)

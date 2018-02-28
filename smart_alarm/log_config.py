@@ -1,12 +1,14 @@
+import os
 
+project_path = os.environ['smart_alarm_path']
 
 # logging configuration
-log_file = "logfiles/smala.log"
+log_file = str(project_path) + "/logfiles/smala.log"
 logging_level = 'DEBUG'
 
 format_log_file = "%(asctime)s :: %(levelname)s :: " \
                   "%(funcName)s in %(filename)s (l:%(lineno)d) :: %(message)s"
-format_console = "%(levelname)s - %(filename)s l:%(lineno)d - %(message)s"
+format_console = "%(asctime)s - %(levelname)s - %(filename)s l:%(lineno)d - %(message)s"
 logging_dict = {
     'version': 1,
     'disable_existing_loggers': True,   # important to set True to suppress existing loggers from other modules
@@ -15,6 +17,27 @@ logging_dict = {
             'level': logging_level,
             'handlers': ['console', 'file'],
         },
+        #'__main__': {
+        #    'level': logging_level,
+        #    'handlers': ['console', 'file'],
+        #},
+        #'modules.sounds': {
+        #    'level': logging_level,
+        #    'handlers': ['console', 'file'],
+        #},
+        #'modules.xml_data': {
+        #    'level': logging_level,
+        #    'handlers': ['console', 'file'],
+        #},
+        #'modules.led': {
+        #    'level': logging_level,
+        #    'handlers': ['console', 'file'],
+        #},
+        #'modules.display_class': {
+        #    'level': logging_level,
+        #    'handlers': ['console', 'file'],
+        #},
+
     },
     'formatters': {
         'format_for_file': {'format': format_log_file, 'datefmt': '%Y-%m-%d %H:%M:%S'},

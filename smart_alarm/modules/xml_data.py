@@ -9,6 +9,7 @@ from os.path import isfile, join
 
 # read environmental variable for project path
 project_path = os.environ['smart_alarm_path']
+logger = logging.getLogger(__name__)
 
 
 class Xml_data(object):
@@ -65,7 +66,7 @@ class Xml_data(object):
     def changeValue(self, element_name, value):
         """Allows editing the xml-file, by passing the elements-
         name and the desired value."""
-        logging.debug("XML CHANGE: element: {}; value: {}".format(element_name, value))
+        logger.debug("XML CHANGE: element: {}; value: {}".format(element_name, value))
         self.xmldoc.find(element_name).text = value
         self.writeFile()
 

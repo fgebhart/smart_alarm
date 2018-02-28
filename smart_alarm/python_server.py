@@ -1,6 +1,7 @@
 import cgi
 import sys
 import os.path
+import logging
 
 import base64 # for decoding mp3 data from webserver
 
