@@ -56,6 +56,7 @@ from xml.dom import minidom
 import time
 import os
 import coloredlogs
+import difflib
 
 # configure logger before importing other modules
 logging.config.dictConfig(log_config.logging_dict)
@@ -300,7 +301,7 @@ def run_alarm_light():
 def run_alarm_sound():
     """main function to run the alarm, based
     on the configured settings in data.xml"""
-    logger.info('#### NOW RUNNING ALARM #####')
+    logger.warning('>>>> NOW RUNNING ALARM <<<<')
 
     # display the current time
     display.show_time(now)
@@ -314,7 +315,7 @@ def run_alarm_sound():
         # set the updated individual wake-up message in order to play it
         individual_message = set_ind_msg(xml_data.individual_message_active(), xml_data.individual_message_text())
         # wake up with individual message
-        z = threading.Thread(target=sound.say, args=(individual_message,))
+        z = threading.Thread(target=sound.say, args=(individual_message, True,))
         z.start()
 
         # check if the provided podcast url is working. If not function chooses deafult url
@@ -357,7 +358,7 @@ def run_alarm_sound():
         # set the updated individual wake-up message in order to play it
         individual_message = set_ind_msg(xml_data.individual_message_active(), xml_data.individual_message_text())
         # wake up with individual message
-        sound.say(individual_message)
+        sound.say(individual_message, force=True)
 
         c = threading.Thread(target=sound.play_online_stream, args=())
         c.start()
@@ -442,7 +443,7 @@ def shutdown_pi():
 
 def if_interrupt():
     """stuff to do when script crashed because of interrupt or whatever"""
-    k = threading.Thread(target=sound.say, args=('Outsch!',))
+    k = threading.Thread(target=sound.say, args=('Outsch!', True,))
     k.start()
     display.snake(1)
     sound.toggle_amp_pin(0)   # switch amp off
@@ -535,7 +536,7 @@ welcome_message = 'What is my purpose?'
 read_name_of_connected_wifi = "successfully connected to "\
                               + os.popen("iw dev wlan0 link | grep SSID | awk '{print $2}'").read()\
                               + "wifi"
-dummy_message = 'hi there'
+dummy_message = 'hi'
 sound.say(dummy_message)
 
 # start the the button interrupt thread
@@ -568,6 +569,10 @@ point = False
 # start timer for second-wise dot blinking
 start_time = time.time()
 
+if xml_data.test_alarm() == 1:
+    logger.warning("setting test alarm to 0")
+    xml_data.changeValue('test_alarm', '0')
+
 logger.info('starting main loop...')
 
 try:
@@ -583,9 +588,15 @@ try:
         # read new volume in order to recognize changes
         new_volume = xml_data.volume()
 
+        logger.warning("test alarm in XML: {}".format(xml_data.test_alarm()))
+
         # check if xml file was updated. If so, update the variables
         if xml_file != new_xml_file:
-            logger.debug('data.xml file changed - now update settings')
+            logger.info('data.xml file changed:')
+            old_lines = str(xml_file).strip().splitlines()
+            new_lines = str(new_xml_file).strip().splitlines()
+            for line in difflib.unified_diff(old_lines, new_lines, fromfile="old_xml", tofile="new_xml", lineterm=''):
+                logger.debug(line)
             sound.play_mp3_file(project_path + '/sounds/blop.mp3')
 
             # check if test alarm was pressed
@@ -619,13 +630,11 @@ try:
 
                 if time_to_alarm == time_for_leds / 60 and just_played_light_show is False:
                     # is true 5 minutes before actual alarm was set
-                    logger.warning("^^^^ running light alarm ^^^^")
                     p = threading.Thread(target=run_alarm_light, args=())
                     p.start()
                     just_played_light_show = True
 
                 if time_to_alarm == 0:
-                    logger.warning('>>>>> running alarm now <<<<<')
                     # ----------- RUN ALARM HERE! -----------
                     q = threading.Thread(target=run_alarm_sound, args=())
                     q.start()

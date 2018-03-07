@@ -48,14 +48,16 @@ class Sound(object):
             GPIO.output(amp_switch_pin, 1)
         else:
             raise TypeError("got wrong value for toggle variable, should be 1 or 0.")
-        # GPIO.output(amp_switch_pin, not GPIO.input(amp_switch_pin))
 
-    def play_mp3_file(self, mp3_file):
+    def play_mp3_file(self, mp3_file, force=False):
         if self.sound_active:
-            logger.warning("sound active, but need to play sth else - stopping")
-            self.stopping_sound()
-            #logger.debug('sound_active is {}, skipping play'.format(self.sound_active))
-            #return
+            if force:
+                self.stopping_sound()
+            else:
+                while self.sound_active:
+                    logging.debug("waiting until sound play is finish")
+                    time.sleep(1)
+        logger.warning("sound play done - now playing next")
 
         self.sound_active = True
         # set output high in order to turn on amplifier
@@ -81,13 +83,16 @@ class Sound(object):
         self.sound_active = False
         self.stop_sound = False
 
-    def say(self, text):
+    def say(self, text, force=False):
         """synthesizes the given text to speech"""
         if self.sound_active:
-            logger.warning("sound active, but need to play sth else - stopping")
-            self.stopping_sound()
-            #logger.debug('sound_active is {}, skipping say'.format(self.sound_active))
-            #return
+            if force:
+                self.stopping_sound()
+            else:
+                while self.sound_active:
+                    logging.debug("waiting until sound play is finish")
+                    time.sleep(1)
+        logger.warning("sound play done - now playing next")
 
         self.sound_active = True
         # set output high in order to turn on amplifier
@@ -108,7 +113,6 @@ class Sound(object):
         logger.debug('adjusting volume')
         volume_command = str('amixer set PCM -- ' + str(value) + '%')
         os.system(volume_command)
-        # self.play_mp3_file(project_path + '/sounds/blop.mp3')
 
     def play_wakeup_music(self):
         """find all mp3 files in the folder /home/pi/music
@@ -123,13 +127,17 @@ class Sound(object):
 
         self.play_mp3_file(list_of_music_files[random_track])
 
-    def play_online_stream(self):
+    def play_online_stream(self, force=False):
         """plays online radio using mpc. Press button to stop. Edit mpc playlist by:
         'mpc add filename', 'mpc playlist', 'mpc clear', 'mpc play', 'mpc stop'."""
         if self.sound_active:
-            logger.warning("sound active, but need to play sth else - stopping")
-            self.stopping_sound()
-            #return
+            if force:
+                self.stopping_sound()
+            else:
+                while self.sound_active:
+                    logging.debug("waiting until sound play is finish")
+                    time.sleep(1)
+        logger.warning("sound play done - now playing next")
 
         self.sound_active = True
 

@@ -3,7 +3,7 @@ import sys
 import os.path
 import logging
 
-import base64 # for decoding mp3 data from webserver
+import base64   # for decoding mp3 data from web server
 
 # important for apache web server:
 project_path = os.environ['smart_alarm_path']
@@ -14,7 +14,9 @@ os.chdir(project_path)
 from modules.xml_data import Xml_data
 
 
-# import xml class
+logger = logging.getLogger(__name__)
+
+
 xml_data = Xml_data(str(project_path) + '/data.xml')
 
 MIME_TABLE = {'.txt': 'text/plain',
@@ -22,11 +24,11 @@ MIME_TABLE = {'.txt': 'text/plain',
               '.css': 'text/css',
               '.xml': 'text/xml',
               '.js': 'application/javascript',
-              '.png': 'image/png'
-             }
+              '.png': 'image/png'}
 
 
 def application(environ, start_response):
+    logger.warning("python_server application started")
     # response for POST
     if environ['REQUEST_METHOD'] == 'POST':
         post = cgi.FieldStorage(
@@ -46,9 +48,9 @@ def application(environ, start_response):
             else:
                 try:
                     xml_data.changeValue(s, post.getvalue(s))
-                    print s + ' changed to ' + post.getvalue(s)
-                except:
-                    print 'Error: Couldn\'t change xml entry ' + s + ' to ' + post.getvalue(s)
+                    logger.warning("{} changed to {}".format(s, post.getvalue(s)))
+                except Exception as e:
+                    logger.warning("Error: Couldn't change xml entry {} to {} with error: {}".format(s, post.getvalue(s), e))
 
         if uploaded_mp3_file:
             mp3_data_base64 = uploaded_mp3_file['fileData'][uploaded_mp3_file['fileData'].find('base64,')+7:]
@@ -78,8 +80,6 @@ def application(environ, start_response):
         return show_404_app(environ, start_response, path)
 
 
-
-
 def content_type(path):
     """Return a guess at the mime type for this path
     based on the file extension"""
@@ -90,6 +90,7 @@ def content_type(path):
         return MIME_TABLE[ext]
     else:
         return "application/octet-stream"
+
 
 def show_404_app(environ, start_response, path):
     start_response('404 Not Found', [('content-type','text/html')])
@@ -104,19 +105,18 @@ if __name__ == '__main__':
     import webbrowser
 
     httpd = make_server('', 8090, application)
-    print('Serving on port 8090...')
+    logger.debug('Serving on port 8090...')
 
     url = "http://127.0.0.1:8090"
     webbrowser.open(url)
 
-    print(os.getcwd())
     try:
         while True:
-            print('Server request.')
+            logger.debug('Server request.')
             httpd.handle_request()
     except KeyboardInterrupt:  # Strg + C
         httpd.server_close()
-        print('Server Closed.')
+        logger.warning('Server Closed.')
     except:
         httpd.server_close()
-        print('Error')
+        logger.error('Error')

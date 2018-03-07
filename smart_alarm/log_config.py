@@ -45,13 +45,13 @@ logging_dict = {
     },
     'handlers': {
         'console': {
-            'level': 'DEBUG',
+            'level': logging_level,
             'class': 'logging.StreamHandler',
             'formatter': 'format_for_console',
             'stream': 'ext://sys.stdout'
         },
         'file': {
-            'level': 'DEBUG',
+            'level': logging_level,
             'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'format_for_file',
             'filename': log_file,
