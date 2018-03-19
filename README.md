@@ -7,7 +7,7 @@ This smart_alarm project provides an easy to build and program Internet of Thing
 
 # Instructions - Wiki
 
- :warning: :warning: **THIS PROJECT IS STILL IN DEVELOPMENT AND MIGHT NOW RUN AS EXPECTED IN FIRST PLACE**  :warning: :warning:
+ :warning: :warning: **THIS PROJECT IS STILL IN DEVELOPMENT AND MIGHT NOT RUN AS EXPECTED**  :warning: :warning:
 
 If you want to build and code your own _smart_alarm_ please visit the **[Smala Wiki](https://github.com/fgebhart/smart_alarm/wiki)**
 
